@@ -40,7 +40,7 @@ class UserRequest extends FormRequest
                 // Password is optional for tutor-created students; required for self-registration (future invite flow)
                 'password'   => ['nullable', 'string', 'min:6'],
                 'avatar'     => ['nullable', 'image'],
-                'role_id'    => ['required'],
+
             ]);
         }
 

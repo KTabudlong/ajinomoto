@@ -3,7 +3,7 @@ import { Link } from "@inertiajs/react";
 import { Star } from "lucide-react";
 
 import { Card, CardContent, CardFooter } from "@/Components/Card/Card";
-import { Button } from "@/Components/Button/Button";
+import Button from "@/Components/Button/Button";
 import { Badge } from "@/Components/Badge/Badge";
 
 // Mock data for featured teachers - this will come from your Laravel backend

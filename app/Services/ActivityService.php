@@ -144,9 +144,15 @@ class ActivityService
         
         return [
             'total' => $this->activityRepository->getByUserId($userId)->count(),
-            'active' => $this->activityRepository->getByUserId($userId)->where('status', 'active')->count(),
-            'completed' => $this->activityRepository->getByUserId($userId)->where('status', 'completed')->count(),
-            'cancelled' => $this->activityRepository->getByUserId($userId)->where('status', 'cancelled')->count(),
+                              'active' => $this->activityRepository->getByUserId($userId)->whereHas('status', function ($q) {
+                      $q->where('slug', 'active');
+                  })->count(),
+                  'completed' => $this->activityRepository->getByUserId($userId)->whereHas('status', function ($q) {
+                      $q->where('slug', 'completed');
+                  })->count(),
+                  'cancelled' => $this->activityRepository->getByUserId($userId)->whereHas('status', function ($q) {
+                      $q->where('slug', 'cancelled');
+                  })->count(),
         ];
     }
 
@@ -164,7 +170,7 @@ class ActivityService
             'start_date' => 'required|date',
             'end_date' => 'nullable|date|after_or_equal:start_date',
             'frequency_config' => 'nullable|array',
-            'status' => 'nullable|in:active,paused,completed,cancelled',
+                              'activity_status_id' => 'nullable|exists:activity_statuses,id',
         ];
 
         $validator = Validator::make($data, $rules);
@@ -245,10 +251,14 @@ class ActivityService
             $data['user_id'] = Auth::id();
         }
 
-        // Set default status if not provided
-        if (!isset($data['status'])) {
-            $data['status'] = 'active';
-        }
+                          // Set default status if not provided
+                  if (!isset($data['activity_status_id'])) {
+                      // Get the default 'active' status ID
+                      $activeStatus = \App\Models\ActivityStatus::where('slug', 'active')->first();
+                      if ($activeStatus) {
+                          $data['activity_status_id'] = $activeStatus->id;
+                      }
+                  }
 
         // Set end date for single events if not provided
         if (!isset($data['end_date']) && isset($data['activity_type_id'])) {

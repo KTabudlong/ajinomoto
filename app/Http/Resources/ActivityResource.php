@@ -20,7 +20,15 @@ class ActivityResource extends JsonResource
             'description' => $this->description,
             'start_date' => $this->start_date?->format('Y-m-d'),
             'end_date' => $this->end_date?->format('Y-m-d'),
-            'status' => $this->status,
+                                  'status' => $this->whenLoaded('status', function () {
+                          return [
+                              'id' => $this->status->id,
+                              'name' => $this->status->name,
+                              'slug' => $this->status->slug,
+                              'color' => $this->status->color,
+                              'color_classes' => $this->status->color_classes,
+                          ];
+                      }),
             'frequency_config' => $this->frequency_config,
             'created_at' => $this->created_at?->format('Y-m-d H:i:s'),
             'updated_at' => $this->updated_at?->format('Y-m-d H:i:s'),

@@ -40,17 +40,17 @@ export default function MainMenu({ className }) {
     },
     {
       text: "Topics",
-      link: "admin.topics",
+      link: "admin.topics.index",
       icon: <BookOpenText size={20} />,
     },
     {
       text: "Sites",
-      link: "admin.sites",
+      link: "admin.sites.index",
       icon: <CalendarDays size={20} />,
     },
     {
       text: "Activities",
-      link: "admin.activities",
+      link: "admin.activities.index",
       icon: <CalendarDays size={20} />,
     },
   ];

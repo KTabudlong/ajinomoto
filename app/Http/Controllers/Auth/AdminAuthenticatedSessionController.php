@@ -23,17 +23,9 @@ class AdminAuthenticatedSessionController extends Controller
      */
     public function create(): Response|RedirectResponse
     {
-        // If user is already authenticated, redirect them appropriately
+        // If user is already authenticated, redirect them to admin dashboard
         if (Auth::check()) {
-            $user = Auth::user();
-            
-            // Admin users should go to admin dashboard
-            if (in_array($user->role_id, [\App\Models\Role::SUPER_ADMIN, \App\Models\Role::TUTOR])) {
-                return redirect()->route('admin.dashboard');
-            }
-            
-            // Customers should go to storefront
-            return redirect()->route('home');
+            return redirect()->route('admin.dashboard');
         }
         
         return Inertia::render('Auth/Login', [

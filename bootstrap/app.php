@@ -17,9 +17,7 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
 
         $middleware->alias([
-            'tutor' => \App\Http\Middleware\TutorRole::class,
-            'admin' => \App\Http\Middleware\AdminRole::class,
-            'admin_or_tutor' => \App\Http\Middleware\AdminOrTutorRole::class,
+            // Role-based middleware removed - all authenticated users have access
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

@@ -14,15 +14,14 @@ class DatabaseSeeder extends Seeder
         $this->call([
             // Admin settings seeder (must come first for system defaults)
             AdminSettingSeeder::class,
-            // Users must be created before time slots (foreign key constraint)
             UserSeeder::class,  
-            // Schedule settings seeders (now users exist)
             TimeSlotSeeder::class,
             DayColorSeeder::class,
             TimeFormatSeeder::class,
             SlotDurationSeeder::class,
             // New activity system seeders
             ActivityTypeSeeder::class,
+            ActivityStatusSeeder::class,
             SiteSeeder::class,
             TopicSeeder::class,
 

@@ -83,9 +83,9 @@ class ActivityRepository implements ActivityRepositoryInterface
 
     public function getPaginated(array $filters = [], int $perPage = 15): LengthAwarePaginator
     {
-        $query = $this->model->newQuery()
-            ->with(['user', 'activityType', 'site', 'topic'])
-            ->orderBy('start_date', 'desc');
+                          $query = $this->model->newQuery()
+                      ->with(['user', 'activityType', 'site', 'topic', 'status'])
+                      ->orderBy('start_date', 'desc');
 
         // Apply filters
         $this->applyFilters($query, $filters);
@@ -95,17 +95,17 @@ class ActivityRepository implements ActivityRepositoryInterface
 
     public function getByDateRange(Carbon $startDate, Carbon $endDate): Collection
     {
-        return $this->model->newQuery()
-            ->with(['user', 'activityType', 'site', 'topic'])
-            ->whereBetween('start_date', [$startDate, $endDate])
-            ->orderBy('start_date')
-            ->get();
+                          return $this->model->newQuery()
+                      ->with(['user', 'activityType', 'site', 'topic', 'status'])
+                      ->whereBetween('start_date', [$startDate, $endDate])
+                      ->orderBy('start_date')
+                      ->get();
     }
 
     public function getByUserId(int $userId): Collection
     {
         return $this->model->newQuery()
-            ->with(['activityType', 'site', 'topic'])
+            ->with(['activityType', 'site', 'topic', 'status'])
             ->where('user_id', $userId)
             ->orderBy('start_date', 'desc')
             ->get();
@@ -114,7 +114,7 @@ class ActivityRepository implements ActivityRepositoryInterface
     public function getByActivityType(int $activityTypeId): Collection
     {
         return $this->model->newQuery()
-            ->with(['user', 'site', 'topic'])
+            ->with(['user', 'site', 'topic', 'status'])
             ->where('activity_type_id', $activityTypeId)
             ->orderBy('start_date', 'desc')
             ->get();
@@ -123,7 +123,7 @@ class ActivityRepository implements ActivityRepositoryInterface
     public function getBySite(int $siteId): Collection
     {
         return $this->model->newQuery()
-            ->with(['user', 'activityType', 'topic'])
+            ->with(['user', 'activityType', 'topic', 'status'])
             ->where('site_id', $siteId)
             ->orderBy('start_date', 'desc')
             ->get();
@@ -132,7 +132,7 @@ class ActivityRepository implements ActivityRepositoryInterface
     public function getByTopic(int $topicId): Collection
     {
         return $this->model->newQuery()
-            ->with(['user', 'activityType', 'site'])
+            ->with(['user', 'activityType', 'site', 'status'])
             ->where('topic_id', $topicId)
             ->orderBy('start_date', 'desc')
             ->get();
@@ -141,8 +141,10 @@ class ActivityRepository implements ActivityRepositoryInterface
     public function getActive(): Collection
     {
         return $this->model->newQuery()
-            ->with(['user', 'activityType', 'site', 'topic'])
-            ->where('status', 'active')
+            ->with(['user', 'activityType', 'site', 'topic', 'status'])
+            ->whereHas('status', function ($q) {
+                $q->where('slug', 'active');
+            })
             ->orderBy('start_date', 'desc')
             ->get();
     }
@@ -150,7 +152,7 @@ class ActivityRepository implements ActivityRepositoryInterface
     public function search(string $query): Collection
     {
         return $this->model->newQuery()
-            ->with(['user', 'activityType', 'site', 'topic'])
+            ->with(['user', 'activityType', 'site', 'topic', 'status'])
             ->where(function ($q) use ($query) {
                 $q->where('title', 'like', "%{$query}%")
                   ->orWhere('description', 'like', "%{$query}%");
@@ -175,7 +177,9 @@ class ActivityRepository implements ActivityRepositoryInterface
 
         // Status filter
         if (isset($filters['status']) && !empty($filters['status'])) {
-            $query->where('status', $filters['status']);
+            $query->whereHas('status', function ($q) use ($filters) {
+                $q->where('slug', $filters['status']);
+            });
         }
 
         // User filter

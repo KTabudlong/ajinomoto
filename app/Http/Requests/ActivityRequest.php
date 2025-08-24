@@ -29,10 +29,7 @@ class ActivityRequest extends FormRequest
             'start_date' => 'required|date',
             'end_date' => 'nullable|date|after_or_equal:start_date',
             'frequency_config' => 'nullable|array',
-            'status' => [
-                'nullable',
-                Rule::in(['active', 'paused', 'completed', 'cancelled'])
-            ],
+                                  'activity_status_id' => 'nullable|exists:activity_statuses,id',
         ];
 
         // Additional validation for frequency config based on activity type
@@ -109,7 +106,7 @@ class ActivityRequest extends FormRequest
             'start_date.date' => 'Start date must be a valid date.',
             'end_date.date' => 'End date must be a valid date.',
             'end_date.after_or_equal' => 'End date must be on or after the start date.',
-            'status.in' => 'Status must be one of: active, paused, completed, or cancelled.',
+                                  'activity_status_id.exists' => 'Selected activity status is not valid.',
         ];
 
         // Add frequency config messages

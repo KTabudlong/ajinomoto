@@ -66,15 +66,9 @@ class UserController extends Controller
     protected function getIndexData()
     {
         $filters = request()->only('search', 'trashed', 'sort_by', 'sort_order');
-        $user = Auth::user();
-
-        if ($user->role_id === \App\Models\Role::SUPER_ADMIN) {
-            $query = User::query();
-        } else {
-            $query = User::where('tutor_id', $user->id)
-                ->where('id', '!=', $user->id)
-                ->where('role_id', '!=', \App\Models\Role::TUTOR);
-        }
+        
+        // All authenticated users can see all users
+        $query = User::query();
 
         // Apply search filter
         if (!empty($filters['search'])) {
@@ -154,10 +148,6 @@ class UserController extends Controller
     public function store(UserRequest $request): RedirectResponse
     {
         $data = $request->validated();
-        // If the creator is a tutor, set tutor_id
-        if (Auth::user()->role_id === \App\Models\Role::TUTOR) {
-            $data['tutor_id'] = Auth::id();
-        }
         $user = User::create($data);
 
         // WIP

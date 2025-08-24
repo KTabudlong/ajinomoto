@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Activity extends Model
@@ -20,7 +21,7 @@ class Activity extends Model
         'start_date',
         'end_date',
         'frequency_config',
-        'status',
+        'activity_status_id',
         'metadata',
     ];
 
@@ -58,9 +59,17 @@ class Activity extends Model
     /**
      * Get the topic of the activity.
      */
-    public function topic()
+    public function topic(): BelongsTo
     {
         return $this->belongsTo(Topic::class);
+    }
+
+    /**
+     * Get the status of the activity.
+     */
+    public function status(): BelongsTo
+    {
+        return $this->belongsTo(ActivityStatus::class, 'activity_status_id');
     }
 
     /**
@@ -68,7 +77,9 @@ class Activity extends Model
      */
     public function scopeActive($query)
     {
-        return $query->where('status', 'active');
+        return $query->whereHas('status', function ($q) {
+            $q->where('slug', 'active');
+        });
     }
 
     /**
@@ -76,7 +87,9 @@ class Activity extends Model
      */
     public function scopeByStatus($query, $status)
     {
-        return $query->where('status', $status);
+        return $query->whereHas('status', function ($q) use ($status) {
+            $q->where('slug', $status);
+        });
     }
 
     /**

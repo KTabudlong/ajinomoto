@@ -40,7 +40,7 @@ class ProfileController extends Controller
 
         $request->user()->save();
 
-        return Redirect::route('storefront.profile.edit');
+        return Redirect::route('admin.profile.edit');
     }
 
     /**
@@ -48,10 +48,7 @@ class ProfileController extends Controller
      */
     public function destroy(Request $request): RedirectResponse
     {
-        // Prevent super admin from deleting their own account
-        if ($request->user()->role_id === \App\Models\Role::SUPER_ADMIN) {
-            return Redirect::back()->withErrors(['error' => 'Super admin accounts cannot be deleted through the UI.']);
-        }
+        // Allow all users to delete their accounts
 
         $request->validate([
             'password' => ['required', 'current_password'],

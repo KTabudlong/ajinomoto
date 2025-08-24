@@ -30,7 +30,7 @@ return new class extends Migration
             $table->json('frequency_config')->nullable();
             
             // Status
-            $table->enum('status', ['active', 'paused', 'completed', 'cancelled'])->default('active');
+            $table->foreignId('activity_status_id')->constrained()->onDelete('cascade');
             
             // Metadata
             $table->json('metadata')->nullable(); // For storing additional type-specific data

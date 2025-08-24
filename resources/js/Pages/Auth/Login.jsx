@@ -1,23 +1,23 @@
-import { Head, Link, useForm } from "@inertiajs/react";
+import { Head, Link, useForm } from '@inertiajs/react';
 
-import Logo from "@/Components/Logo/Logo";
-import LoadingButton from "@/Components/Button/LoadingButton";
-import TextInput from "@/Components/Form/TextInput";
-import FieldGroup from "@/Components/Form/FieldGroup";
-import { CheckboxInput } from "@/Components/Form/CheckboxInput";
+import Logo from '@/Components/Logo/Logo';
+import LoadingButton from '@/Components/Button/LoadingButton';
+import TextInput from '@/Components/Form/TextInput';
+import FieldGroup from '@/Components/Form/FieldGroup';
+import { CheckboxInput } from '@/Components/Form/CheckboxInput';
 
 export default function Login({ canResetPassword }) {
   const { data, setData, post, processing, errors, reset } = useForm({
-    email: "tutor@one.com",
-    password: "test123",
+    email: 'test@last.com',
+    password: 'test123',
     remember: false,
   });
 
-  const submit = (e) => {
+  const submit = e => {
     e.preventDefault();
 
-    post(route("login"), {
-      onFinish: () => reset("password"),
+    post(route('login'), {
+      onFinish: () => reset('password'),
     });
   };
 
@@ -46,7 +46,7 @@ export default function Login({ canResetPassword }) {
                   type="email"
                   error={errors.email}
                   value={data.email}
-                  onChange={(e) => setData("email", e.target.value)}
+                  onChange={e => setData('email', e.target.value)}
                 />
               </FieldGroup>
 
@@ -59,7 +59,7 @@ export default function Login({ canResetPassword }) {
                   type="password"
                   error={errors.password}
                   value={data.password}
-                  onChange={(e) => setData("password", e.target.value)}
+                  onChange={e => setData('password', e.target.value)}
                 />
               </FieldGroup>
 
@@ -69,7 +69,7 @@ export default function Login({ canResetPassword }) {
                   name="remember"
                   id="remember"
                   checked={data.remember}
-                  onChange={(e) => setData("remember", e.target.checked)}
+                  onChange={e => setData('remember', e.target.checked)}
                 />
               </FieldGroup>
             </div>
@@ -79,7 +79,7 @@ export default function Login({ canResetPassword }) {
               <Link
                 className="hover:underline text-center sm:text-left"
                 tabIndex={-1}
-                href={route("password.request")}
+                href={route('password.request')}
               >
                 Forgot password?
               </Link>
