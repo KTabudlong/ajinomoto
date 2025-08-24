@@ -1,0 +1,625 @@
+**PHP/Laravel**
+
+- Use PHP 8.2+ features when appropriate. Do not use outdated or deprecated PHP features.
+- Utilize Laravel's built-in features and helpers when possible.
+- File structure: Follow Laravel's 11.x+ directory structure and naming conventions.
+- Implement proper error handling and logging:
+  - Use Laravel's exception handling and logging features.
+  - Create custom exceptions when necessary.
+  - Use try-catch blocks for expected exceptions.
+- Use Laravel's validation features for form and request validation.
+- Implement middleware for request filtering and modification.
+- Utilize Laravel's Eloquent ORM for database interactions.
+- Use Laravel's query builder for complex database queries.
+- Implement proper database migrations and seeders.
+- Use Eloquent ORM instead of raw SQL queries when possible.
+- Follow Laravel's MVC architecture.
+- Implement proper CSRF protection and security measures.
+- Sanitize user inputs when necessary, especially before processing inputs with the server.
+- **Route Model Binding**: Always use route model binding (`{model}`) instead of `int $id` parameters in controller methods.
+- **Route Model Binding Fallback**: Only use string ID fallback logic for legacy support, prefer proper type hints.
+
+**Laravel Service Providers**
+
+- There are no other service providers except AppServiceProvider. Don't create new service providers unless absolutely necessary. Use Laravel 11 new features, instead. Or, if you really need to create a new service provider, register it in `bootstrap/providers.php` and not `config/app.php` like it used to be before Laravel 11.
+
+**Laravel Event Listeners**
+
+- Since Laravel 11, Listeners auto-listen for the events if they are type-hinted correctly.
+
+**Laravel Console Scheduler**
+
+- Scheduled commands should be in `routes/console.php` and not `app/Console/Kernel.php` which doesn't exist since Laravel 11.
+
+**Laravel Middleware**
+
+- Should be registered in `bootstrap/app.php` and not `app/Http/Kernel.php` which doesn't exist since Laravel 11.
+
+**Laravel Tailwind**
+
+- In new React pages, use Tailwind and not Bootstrap. Tailwind is already pre-configured since Laravel 11, with Vite.
+
+**Laravel Routes & Web.php**
+
+- `web.php` exists because Laravel 11 ships with only `routes/web.php` because, since Laravel v11, the framework treats an API as an opt-in feature: you create it only if you truly need a stateless JSON interface. All Inertia-driven pages (and any other UI that relies on cookies, sessions, and CSRF protection) should continue to live in `web.php` under the web middleware group. If, however, you must expose a public or mobile API that is stateless, needs to serve external clients, rate-limited, and/or authenticated with tokens, then enabling the separate `routes/api.php` might make sense. Truly evaluate where you are putting routes and do not create a disjointed cosebase under the `/routes` directory.
+- Routes should not be created in TypeScript/Javascript/React directories.
+
+**Rebuilding Assets**
+
+- Tell the user to run `composer run dev` to rebuild assets instead of `npm run dev`
+
+**Laravel + React + Inertia**
+
+- Do not over-bloat React components (be mindful of components exceeding 200 lines).
+- Be mindful of Laravel backend and React/Inertia frontend connections.
+- Do not place Inertia form logic directly in the render body.
+- React components must delegate API requests, side effects, and Inertia actions to separate hooks or utils.
+- When fetching data for a page, prefer Laravel controller + Inertia::render() over `useEffect` in React, unless it makes sense to use `useEffect` like in cases of socket connections, live updates, client-interactivity, frequent fetching/polling, etc... SSR needs to be considered so we do not stress the server and drive up cost.
+- Avoid React routes or routing logic, always define routes in Laravel and pass via Inertia.
+- Avoid using localStorage/sessionStorage in components rendered via Inertia SSR.
+- Wrap any browser-only code in guards to avoid SSR mismatches.
+- Use `useForm()` from `@inertiajs/react` for any form state management to keep forms Inertia-aware and leverage validation.
+- Avoid axios/fetch inside components unless explicitly creating non-Inertia background logic
+- Avoid importing JS libraries that contradict the Laravel framework and Laravel project best practices, or JS libraries that conflict with existing Laravel implementations.
+- Use `<Link>` from `@inertiajs/react` instead of `<a>` for internal navigation to preserve SPA behavior.
+- Be mindful of what data is being exposed to each page via Inertia + Laravel, do not expose sensitive data to the front-end because of shared Inertia props.
+- For React ensure to name components, hooks, and lib/utils in a hyphen format like `firstword-secondword.tsx`.
+- **Table Data Safety**: Always use `safeTableData()` helper when working with table data to prevent "rows?.map is not a function" errors.
+- **Data Structure Validation**: Validate table data structures before passing to components.
+- **Error Boundaries**: Implement error boundaries for table components to gracefully handle data structure issues.
+- **Laravel Property Naming Convention**: Follow proper REST conventions for Inertia property names:
+  - **Collections/Index pages**: Use plural property names (`schedules`, `orders`, `subjects`) for lists of items
+  - **Individual items/Edit/Show pages**: Use singular property names (`schedule`, `order`, `subject`) for single items
+  - **Controller pattern**: Override trait methods when needed to use correct singular/plural naming
+  - **React adaptation**: Frontend should expect the correct property names based on Laravel's convention
+  - **Example**: Index page sends `schedules` (plural), Edit page sends `schedule` (singular)
+
+**Common Refactoring Errors & Prevention**
+- **Database Migration Errors**: 
+  - ❌ **Error**: Missing default values causing "Column cannot be null" errors
+  - ✅ **Prevention**: Always add default values for nullable columns in migrations
+  - ✅ **Example**: `$table->longText('comment')->default('');`
+- **Property Naming Mismatches**:
+  - ❌ **Error**: Frontend expects `order` but backend sends `booking`
+  - ✅ **Prevention**: Follow Laravel-first principle - React adapts to Laravel conventions
+  - ✅ **Rule**: Use singular for individual items, plural for collections
+- **Route Model Binding Issues**:
+  - ❌ **Error**: Soft-deleted models not found in route model binding
+  - ✅ **Prevention**: Use `withTrashed()` in route model binding for soft-deleted models
+  - ✅ **Example**: `Route::model('order', Order::class);` with `withTrashed()` in AppServiceProvider
+- **Seeder/Factory Inconsistency**:
+  - ❌ **Error**: Factory creates unique random values causing seeder overflow
+  - ✅ **Prevention**: Make factories use existing seeder data instead of creating new records
+  - ✅ **Example**: `OrderStatus::inRandomOrder()->first()` instead of `OrderStatus::factory()`
+- **Auth Helper vs Facade**:
+  - ❌ **Error**: Mixed usage of `auth()` helper and `Auth` facade
+  - ✅ **Prevention**: Use `Auth` facade consistently throughout the application
+  - ✅ **Rule**: Replace all `auth()` calls with `Auth` facade
+- **Trait Method Overrides**:
+  - ❌ **Error**: Trait uses plural for everything, breaking REST conventions
+  - ✅ **Prevention**: Override trait methods to use correct singular/plural naming
+  - ✅ **Example**: Override `edit()` method to use singular property name
+- **Test Assertion Mismatches**:
+  - ❌ **Error**: Tests expect `order` property but controller sends `booking`
+  - ✅ **Prevention**: Make tests match actual controller behavior, not theoretical expectations
+  - ✅ **Rule**: Preserve working code during test fixes
+- **Validation Rule Mismatches**:
+  - ❌ **Error**: Test data doesn't match validation rules
+  - ✅ **Prevention**: Ensure test data matches actual validation requirements
+  - ✅ **Example**: Check `OrderRequest` validation rules before creating test data
+
+**Common Paths to Help With Codebase Searches**
+
+- Laravel controllers are under `/app/Http/Controllers/*`
+- Laravel middlware are under `/app/Http/Middleware/*`
+- Laravel models are under `/app/Models/*`
+- Laravel policies are under `/app/Policies/*`
+- Laravel App Service Provider `/app/Providers/AppServiceProvider.php`
+- Database Schema `/database/migrations/*`
+- React Content (Hooks, lib, layouts, pages, components, etc.) `/resources/js/*` | `/resources/js/components/*` | `/resources/js/pages/*` | `/resources/js/layouts/*` | `/resources/js/hooks/*`
+- Routes `/routes/*`
+- Try to look around these directories before adding new files because you do NOT want to duplicate existing files/functionality.
+
+**Codebase Structure**
+
+- Do not look for routing under `/resources/js/` because routing lives in `/routes/*` since this is a Laravel application and not a javascript/typescript application.
+
+**Project / Context**
+
+- PHP ^8.2 || ^8.4
+- PEST testing framework
+- Laravel 11+
+- React
+- Lucide React Icons
+- Tailwind
+- Inertia (for React)
+- MySQL Database
+
+# ENVIRONMENT DETAILS
+
+- **O/S**: 64-bit Windows 10
+- **Terminal**: Cursor's Integrated Powershell with Administrator rights
+- **Browser**: Chrome
+  Avoid responding with information related to other environments.
+
+# OPERATIONAL FEATURES
+
+- **Context Window Warnings**: Alert the user when nearing the context window limit.
+- **Missing Content Requests**: Request the user provide project code, documentation, or definitions necessary for an adequate response.
+- **Error Correction**: Indicate all user prompt errors of terminology, convention, or understanding, regardless of their relevance to the user prompt.
+
+# CRITICALLY IMPORTANT RULES
+
+1. **Completeness**: Generate full code, no placeholders. If unable, explain in comments.
+2. **Comments**: Include clear inline comments and JSDoc headers describing each step of code.
+3. **Error Checking**: Implement error checking and type validation.
+4. **Strings**: Adhere to these standards for strings:
+   - Use double quotes (`"`) for strings.
+   - Use string templates or `.join()` instead of operational concatenation.
+     It is critically important that you adhere to the above four rules.
+
+# DEVELOPMENT PRINCIPLES & ARCHITECTURE RULES
+
+**Core Principle: Laravel-First Architecture**
+- React should adapt to Laravel, not the other way around.
+- Laravel's native structures are the source of truth.
+- React components should adapt to Laravel's data formats.
+- Use Laravel's conventions for pagination, resources, validation, etc.
+- Maintain Laravel's patterns without unnecessary customizations.
+
+**Code Quality: Simplicity & Cleanliness**
+- Keep code as simple as it can be - avoid over-engineering and unnecessary complexity.
+- Lower cyclomatic complexity as much as possible without sacrificing readability.
+- Clean up debugging code - remove console.log, Log::info, and debugging statements after use.
+- Maintain clean codebase - no leftover debugging artifacts.
+
+**Database & Validation Rules**
+- SoftDeletes awareness - always check if model uses SoftDeletes and handle accordingly.
+- Unique validation with SoftDeletes - use `whereNull('deleted_at')` for unique rules when model has SoftDeletes.
+- Trash status consideration - include trash status in all relevant operations (validation, queries, relationships).
+- Data integrity - ensure soft-deleted records don't interfere with active data operations.
+- **Data Integrity Protection**: Preserve data integrity by limiting edit capabilities on critical business data. Bookings, payments, and financial records should be view-only for users, with delete/restore as the primary modification method. Use soft deletes to maintain audit trails and prevent data manipulation.
+- **Deletion Integrity**: Only cancelled bookings can be permanently deleted. Active bookings (pending, active, completed) must be cancelled first before deletion to maintain data integrity and audit trails.
+
+**Implementation Guidelines**
+- Pagination: Use Laravel's native `{ data: [...], links: [...] }` structure.
+- Resources: Leverage Laravel's Resource classes and collections.
+- Validation: Use Laravel's validation rules and error formats.
+- Routing: Follow Laravel's route model binding conventions.
+- Database: Use Laravel's Eloquent patterns and relationships.
+- Functions: Aim for single responsibility with clear, linear flow.
+- Debugging: Remove all debugging code before committing.
+- SoftDeletes: Use simple `withTrashed()->findOrFail()` in controllers, `whereNull('deleted_at')` for unique validation.
+- **Table Data Safety**: Laravel collections should work directly with `const { data, meta: { links } } = response`. If you encounter "rows?.map is not a function" errors, check the Resource collection's `toArray()` method first.
+- **Data Structure Validation**: Use simple fallback pattern: `const data = response.data || response; const tableData = Array.isArray(data) ? data : [];`
+- **Component Error Boundaries**: Implement safe fallbacks in table components to handle unexpected data structures.
+
+**Special Cases (Require Discussion)**
+- Complex UI interactions that might need custom data structures.
+- Real-time features requiring different data formats.
+- Third-party integrations with specific API requirements.
+- Performance optimizations that might need custom data shapes.
+- Legacy system integrations with existing data formats.
+
+**Future Development Considerations**
+- **Storefront Booking System**: Implement customer-facing booking creation interface for the storefront. Current admin booking creation is for testing only. Storefront should allow customers to browse subjects, select topics, choose schedules, and create bookings with proper validation and user experience.
+
+**Decision Process**
+1. Always start with Laravel's native approach.
+2. Keep it simple - avoid unnecessary complexity.
+3. Check for SoftDeletes - always consider trash status.
+4. Document any deviations from this principle.
+5. Discuss special cases before implementation.
+6. Justify why Laravel's approach doesn't fit the use case.
+7. Consider long-term maintenance implications.
+8. Clean up all debugging code before finalizing.
+
+**Design Pattern Guidelines**
+- **Backend: Repository + Service Layer Pattern** - Use for all new features and refactoring
+- **Frontend: Component Composition + Minimal Custom Hooks** - Leverage Inertia.js features
+- **SOLID Principles** - Always follow Single Responsibility, Open/Closed, Liskov Substitution, Interface Segregation, Dependency Inversion
+- **Responsive Design** - Mobile-first approach with Tailwind breakpoints
+- **Inertia.js-First** - Use Inertia.js features before creating custom solutions
+- **Isolated Implementation** - Implement patterns on one feature at a time for testing
+
+**Debugging & Cleanup Guidelines**
+- **Create simple debugging scripts** instead of running complex commands in the shell.
+- Shell commands can be slow and cause IDE issues - use PHP scripts for debugging.
+- Create temporary `.php` files in the project root for quick debugging.
+- Clean up debugging scripts after use - delete them when done.
+- Use `require_once 'vendor/autoload.php'` and bootstrap the app in debug scripts.
+- Keep debug scripts simple and focused on the specific issue.
+- **Do not run `php artisan serve`** - the user already has the development server running.
+- Remove `console.log()`, `Log::info()`, and debugging statements after use.
+- Remove temporary debugging variables and unused imports.
+- Clean up any temporary UI elements for debugging.
+
+**SoftDeletes Checklist**
+- Check if model uses `SoftDeletes` trait.
+- Add `whereNull('deleted_at')` to unique validation rules.
+- Consider trash status in queries and relationships.
+- Handle soft-deleted records in UI appropriately.
+- Test validation with both active and trashed records.
+- Use simple `withTrashed()->findOrFail()` in controller methods.
+- Avoid complex route binding overrides - keep it simple.
+
+**Examples**
+
+Validation with SoftDeletes:
+```php
+// ✅ Correct - Excludes soft-deleted records
+Rule::unique('subjects')->whereNull('deleted_at')->ignore($subjectId)
+
+// ❌ Incorrect - Includes soft-deleted records
+Rule::unique('subjects')->ignore($subjectId)
+```
+
+React Adapting to Laravel:
+```javascript
+// ✅ Correct - Adapts to Laravel's pagination structure
+const { data, links } = subjects;
+
+// ❌ Incorrect - Expects custom structure
+const { items, pagination } = subjects;
+```
+
+Simple, Clean Code:
+```php
+// ✅ Correct - Simple, readable
+$baseRules = [
+    'name' => ['string', 'max:255'],
+    'description' => ['nullable', 'string', 'max:1000'],
+];
+
+if ($this->isMethod('PUT')) {
+    $baseRules['name'][] = 'sometimes';
+    $baseRules['name'][] = Rule::unique('subjects')->whereNull('deleted_at');
+}
+
+// ❌ Incorrect - Overly complex
+$baseRules = $this->buildComplexValidationRules($this->getValidationContext());
+```
+
+# ENHANCED DEVELOPMENT RULES
+
+**Testing & Quality Assurance**
+- Write PEST tests for critical features (authentication, bookings, payments, user management).
+- Test both happy path and edge cases.
+- Mock external services and APIs.
+- Test SoftDeletes functionality (create, delete, restore, force delete).
+- Test validation rules with various scenarios.
+- Test validation rules with various scenarios.
+- Ensure React components handle loading, error, and empty states.
+- Test database relationships and constraints.
+- Verify form validation and error handling.
+- **Focus on Critical Paths**: Prioritize testing for features that handle money, user data, or security.
+- **Automated Security Testing**: Implement basic vulnerability scanning for new features.
+- **Accessibility Testing**: Ensure WCAG compliance for US market requirements.
+- **Testing Rule: Preserve Working Code During Test Fixes**: When someone indicates that "features were working before" during testing:
+  - **NEVER modify working backend code** - only fix tests to match existing behavior
+  - **Don't change controller properties, add authorization logic, or "improve" working functionality** during test fixes
+  - **Ask clarifying questions first**: "What was the actual working behavior?" and "Should I change the tests or the code?"
+  - **Golden rule**: "If it was working before, make the tests match the working code, not the other way around"
+  - **Only update test assertions, test data, and expectations** to align with existing working functionality
+  - **Preserve existing property names, authorization logic, and business rules** that were already functioning
+  - **Example of what NOT to do**: Changing `'booking'` to `'order'` properties in controller (breaks frontend), adding new authorization logic when existing logic was working, modifying working business rules during test fixes
+  - **Example of what TO do**: Update test assertions to expect `'booking'` properties (match working controller), fix test data to match actual validation rules, align test expectations with existing working behavior
+
+**Performance Guidelines**
+- Use eager loading (`with()`) to avoid N+1 queries.
+- Implement database indexing for frequently queried columns.
+- Use Laravel's query caching when appropriate.
+- Optimize React component re-renders with proper dependency arrays.
+- Consider pagination for large datasets.
+- Use `select()` to limit columns when full model isn't needed.
+- Monitor query performance and optimize slow queries.
+- Use database transactions for multi-step operations.
+
+**Security Rules (Comprehensive)**
+- Always validate and sanitize user inputs.
+- Use Laravel's built-in CSRF protection.
+- Implement proper authorization with policies.
+- Never expose sensitive data in API responses.
+- Use prepared statements (Laravel handles this automatically).
+- Validate file uploads and restrict file types.
+- Implement rate limiting for API endpoints.
+- Use secure session configuration.
+- Sanitize data before database operations.
+
+**Input Validation & Sanitization**
+- **Laravel Validation**: Use Laravel's validation rules for all user inputs.
+- **HTML Purification**: Sanitize HTML content using `HTMLPurifier` or similar libraries.
+- **SQL Injection Prevention**: Use Eloquent ORM and prepared statements (Laravel handles this).
+- **XSS Prevention**: Escape output in Blade templates using `{{ }}` and `{!! !!}` appropriately.
+- **File Upload Security**: Validate file types, sizes, and scan for malware.
+- **Email Validation**: Use Laravel's email validation rules and verify email domains.
+- **Phone Number Validation**: Use proper regex patterns for phone number validation.
+- **Data Type Validation**: Always validate data types before processing.
+
+**Authorization & Access Control**
+- **Role-Based Access Control (RBAC)**: Implement proper role and permission systems.
+- **Policy-Based Authorization**: Use Laravel policies for model-level authorization.
+- **Middleware Protection**: Protect routes with appropriate middleware.
+- **Resource Ownership**: Always verify user owns the resource before operations.
+- **Admin Access Control**: Implement separate admin authentication and authorization.
+- **API Token Security**: Use secure token generation and rotation for API access.
+- **Session Security**: Implement secure session management with proper timeouts.
+
+**Data Protection & Privacy**
+- **Sensitive Data Encryption**: Encrypt sensitive data at rest (passwords, personal info).
+- **Data Minimization**: Only collect and store necessary data.
+- **Data Retention**: Implement proper data retention and deletion policies.
+- **GDPR Compliance**: Ensure data processing follows privacy regulations.
+- **Audit Logging**: Log all sensitive operations for audit trails.
+- **Data Export/Import Security**: Validate and sanitize all imported data.
+- **Backup Security**: Encrypt database backups and secure backup storage.
+
+**API Security**
+- **Rate Limiting**: Implement rate limiting on all API endpoints.
+- **Input Validation**: Validate all API inputs with strict rules.
+- **Output Sanitization**: Sanitize all API responses.
+- **Authentication**: Use secure authentication methods (JWT, OAuth, etc.).
+- **CORS Configuration**: Properly configure CORS for cross-origin requests.
+- **API Versioning**: Use proper API versioning to maintain security.
+- **Request Logging**: Log all API requests for security monitoring.
+
+**Frontend Security**
+- **Content Security Policy (CSP)**: Implement CSP headers.
+- **XSS Prevention**: Sanitize all user-generated content before rendering.
+- **CSRF Protection**: Use Laravel's CSRF protection for all forms.
+- **Secure Headers**: Implement security headers (HSTS, X-Frame-Options, etc.).
+- **Input Sanitization**: Sanitize all user inputs on the frontend.
+- **Secure Storage**: Never store sensitive data in localStorage/sessionStorage.
+- **Third-Party Scripts**: Validate and secure all third-party integrations.
+
+**Database Security**
+- **Connection Security**: Use encrypted database connections.
+- **User Permissions**: Implement least-privilege database user permissions.
+- **Query Security**: Use parameterized queries and avoid raw SQL.
+- **Data Encryption**: Encrypt sensitive columns in the database.
+- **Backup Encryption**: Encrypt all database backups.
+- **Access Logging**: Log all database access and changes.
+- **Connection Pooling**: Use secure connection pooling.
+
+**Environment & Configuration Security**
+- **Environment Variables**: Never commit sensitive data to version control.
+- **Configuration Security**: Secure all configuration files and settings.
+- **Secret Management**: Use proper secret management for API keys and passwords.
+- **SSL/TLS**: Use HTTPS for all communications.
+- **Server Security**: Implement proper server security configurations.
+- **Dependency Security**: Regularly update dependencies and scan for vulnerabilities.
+- **Security Headers**: Implement proper security headers in web server configuration.
+
+**Error Handling & Logging (Comprehensive)**
+- Use Laravel's exception handling for expected errors.
+- Log errors with appropriate context and severity.
+- Provide user-friendly error messages.
+- Handle network errors gracefully in React.
+- Implement proper fallbacks for failed operations.
+- Use try-catch blocks for expected exceptions.
+- Log important business operations for audit trails.
+- Implement proper error boundaries in React components.
+
+**Code Organization & Standards**
+- Keep controllers thin - delegate business logic to services.
+- Use traits for reusable functionality across models.
+- Group related functionality in dedicated directories.
+- Follow consistent naming conventions across the stack.
+- Document complex business logic with clear comments.
+- Separate concerns between models, controllers, and services.
+- Use dependency injection for better testability.
+- Implement repository pattern for complex data access.
+- **PHP Standards**: Follow PSR-12 coding standards.
+- **React Standards**: Use ESLint and Prettier for code formatting.
+- **Git Workflow**: Use feature branches and semantic commit messages.
+- **Documentation**: Maintain inline comments for complex business logic.
+
+**Database Best Practices (Comprehensive)**
+- Use meaningful column and table names.
+- Implement proper foreign key constraints.
+- Use database transactions for multi-step operations.
+- Consider database normalization vs denormalization trade-offs.
+- **Development Stage**: Direct database changes are acceptable for rapid prototyping and testing.
+- **Production Stage**: Use database migrations for ALL schema changes - no exceptions.
+- Use database seeding for development and testing data.
+- Implement proper database backup strategies.
+- Monitor database performance and optimize queries.
+
+**Monitoring & Observability**
+- Implement comprehensive logging for all critical operations.
+- Use Laravel's built-in logging features with appropriate channels.
+- Log user actions for audit trails and debugging.
+- Monitor application performance and error rates.
+- Implement health checks for critical services.
+- Use structured logging with consistent format.
+- Monitor database query performance.
+- Track user session and authentication events.
+- Implement error tracking and alerting systems.
+- Log API requests and responses for debugging.
+- **Error Tracking**: Integrate Sentry for production error monitoring.
+- **Audit Trails**: Log all business operations for compliance and debugging.
+- **Health Checks**: Implement basic application health monitoring.
+- **User Analytics**: Privacy-compliant basic user behavior tracking.
+
+**Documentation Standards**
+- Keep documentation simple and focused.
+- Document complex business logic with clear, concise comments.
+- Use JSDoc headers for React components and functions.
+- Document API endpoints with clear parameter descriptions.
+- Maintain README files for project setup and deployment.
+- Document database schema changes and their purpose.
+- Use inline comments sparingly - only for complex logic.
+- Document configuration changes and their impact.
+- Keep documentation close to the code it describes.
+
+**API Design Principles (Future-Ready)**
+- Design internal APIs with future public API in mind.
+- Use consistent response formats and status codes.
+- Implement proper API versioning structure.
+- Use resource-based URL patterns.
+- Implement proper API authentication and authorization.
+- Design APIs to be stateless and scalable.
+- Use JSON for all API communications.
+- Implement proper API rate limiting and throttling.
+- Document API endpoints for future public release.
+
+**UX/UI Design Principles**
+- **Consistent Layout Patterns**: Use consistent header layouts with breadcrumbs on left and action buttons on right.
+- **Action Button Placement**: Place primary navigation/management buttons prominently in page headers, not buried in form footers.
+- **Form Action Separation**: Keep form submission actions separate from navigation/management actions.
+- **Visual Hierarchy**: Use clear visual hierarchy with proper spacing, typography, and color contrast.
+- **Responsive Design**: Ensure all components work well on mobile, tablet, and desktop screens.
+- **Loading States**: Provide clear loading indicators for all async operations.
+- **Error Handling**: Display user-friendly error messages with clear next steps.
+- **Success Feedback**: Show clear success messages after completing actions.
+- **Accessibility**: Follow WCAG guidelines for color contrast, keyboard navigation, and screen readers.
+- **Progressive Disclosure**: Show essential information first, with options to reveal more details.
+- **Consistent Navigation**: Use consistent navigation patterns across all pages.
+- **Button Labeling**: Use clear, action-oriented button labels (e.g., "Manage Topics" not "Topics").
+- **Table UX**: Disable row click navigation, rely on explicit action buttons for row operations.
+- **Modal Design**: Use modals for destructive actions and confirmations, not for primary workflows.
+- **Form Validation**: Show validation errors inline and provide helpful error messages.
+- **Empty States**: Provide helpful empty states with clear next steps for users.
+- **Search & Filtering**: Make search and filtering options easily discoverable and accessible.
+- **Breadcrumb Navigation**: Use breadcrumbs for multi-level navigation with clear current location.
+- **Action Grouping**: Group related actions together and separate different types of actions.
+- **Visual Feedback**: Provide immediate visual feedback for user interactions.
+
+**UX Pattern Examples**
+
+**Header Layout Pattern:**
+```jsx
+// ✅ Good - Breadcrumbs left, actions right
+<div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+  <Breadcrumbs items={[...]} />
+  <div className="flex-shrink-0">
+    <LinkButton href={route("manage.items")}>Manage Items</LinkButton>
+  </div>
+</div>
+
+// ❌ Bad - Actions buried in form footer
+<div className="form-footer">
+  <LinkButton href={route("manage.items")}>Manage Items</LinkButton>
+  <SubmitButton>Save</SubmitButton>
+</div>
+```
+
+**Table Action Pattern:**
+```jsx
+// ✅ Good - Explicit action buttons, no row clicks
+<TableRow>
+  <TableCell>{item.name}</TableCell>
+  <TableCell>
+    <div className="flex gap-2">
+      <EditButton href={route("items.edit", item.id)} />
+      <DeleteButton onDelete={() => handleDelete(item.id)} />
+    </div>
+  </TableCell>
+</TableRow>
+
+// ❌ Bad - Row click navigation
+<TableRow onClick={() => navigate(item.id)}>
+  <TableCell>{item.name}</TableCell>
+</TableRow>
+```
+
+**Form Action Separation:**
+```jsx
+// ✅ Good - Navigation separate from form actions
+<div className="header-actions">
+  <LinkButton href={route("related.index")}>Manage Related</LinkButton>
+</div>
+<form>
+  <div className="form-content">...</div>
+  <div className="form-actions">
+    <BackButton />
+    <SubmitButton>Save Changes</SubmitButton>
+  </div>
+</form>
+
+// ❌ Bad - Mixed actions in form footer
+<form>
+  <div className="form-content">...</div>
+  <div className="form-footer">
+    <LinkButton href={route("related.index")}>Manage Related</LinkButton>
+    <BackButton />
+    <SubmitButton>Save Changes</SubmitButton>
+  </div>
+</form>
+```
+
+**Rules Maintenance & Organization**
+- **Avoid Duplicates**: Check for existing rules before adding new ones.
+- **Consolidate Similar Rules**: Merge overlapping rules into comprehensive sections.
+- **Clear Section Headers**: Use descriptive headers like "(Comprehensive)" for detailed sections.
+- **Regular Review**: Periodically review and clean up rule duplicates and conflicts.
+- **Consistent Formatting**: Maintain consistent formatting and structure across all rules.
+
+**Preventing Recurring Issues**
+- **Pattern Recognition**: When the same error occurs multiple times, create a rule to prevent it.
+- **Utility Functions**: Create reusable utility functions for common patterns, but avoid over-engineering simple issues.
+- **Component Safety**: Always implement safe fallbacks in components that handle dynamic data.
+- **Data Validation**: Validate data structures at the boundary between Laravel and React.
+- **Error Logging**: Log unexpected data structures to help identify patterns.
+- **Documentation**: Document common pitfalls and their solutions in the rules.
+- **Testing**: Test components with various data structures to ensure robustness.
+- **Avoid Over-Engineering**: Check existing patterns in the codebase before creating new utilities. Laravel collections should work directly without complex wrappers.
+
+**Implementation Phases & Roadmap**
+
+**Phase 1: Core Security & Quality (Current)**
+- Basic testing for critical features (authentication, bookings, payments)
+- Security rules implementation (input validation, authorization, data protection)
+- Coding standards (PSR-12 for PHP, ESLint/Prettier for React)
+- Error tracking and logging (Sentry integration, structured logging)
+- Environment management (local, staging, production)
+- Database seeding for development
+- Basic deployment automation
+- Audit trails for business operations
+- Data export/import (GDPR compliance)
+- US tax calculation compliance
+- Backup & recovery (automated daily backups)
+- Data validation (comprehensive integrity checks)
+- API rate limiting for security
+
+**Phase 2: Performance & User Experience (After Core Features)**
+- Performance optimization (lazy loading, query optimization, asset compression)
+- Advanced monitoring (health checks, user analytics)
+- Progressive Web App (PWA) features
+- Third-party integrations (email services, OAuth, webhooks)
+- Mobile-first responsive design
+- Loading states and error boundaries
+- Data migration strategy (safe migration procedures)
+- Queue management (background job processing)
+
+**Phase 3: Advanced Features (When Scaling)**
+- Caching strategies (Redis, CDN integration)
+- Advanced analytics and reporting
+- Complex workflows and automation
+- Advanced third-party integrations
+- Data archiving and versioning
+- Feature flags and A/B testing
+- Advanced CI/CD pipelines
+
+**Payment Security Implementation**
+- **PCI DSS Compliance**: Implement when integrating Stripe/PayPal
+- **Payment Gateway Security**: Secure payment processing
+- **Webhook Security**: Secure payment confirmation handling
+- **Transaction Logging**: Complete audit trail for all payments
+
+**CI/CD & Deployment (Low Priority - Post-MVP)**
+- **Primary Target Platform**: Laravel Forge for production deployment.
+- **Future Consideration**: AWS (more complex, requires additional infrastructure knowledge).
+- Design application with Laravel Forge deployment in mind.
+- Use environment-specific configuration files.
+- Implement proper environment variable management.
+- Structure application for easy deployment automation.
+- Consider server requirements and optimization for Forge.
+- Plan for zero-downtime deployments.
+- Implement proper backup and rollback strategies.
+- Use Laravel's built-in deployment features.
+- Consider queue workers and background job management for Forge.
+- Plan for SSL certificate management.
+- Structure database migrations for production deployment.
+- Consider file storage and CDN integration for Forge.
+- **AWS Considerations (Future)**: Design with cloud-native principles in mind for potential AWS migration.

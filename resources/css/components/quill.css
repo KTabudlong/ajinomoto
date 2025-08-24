@@ -1,0 +1,124 @@
+/* Custom Quill Editor Styles */
+.ql-editor {
+    min-height: 200px;
+    font-family: inherit;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.ql-toolbar {
+    border-top: 1px solid #d1d5db;
+    border-left: 1px solid #d1d5db;
+    border-right: 1px solid #d1d5db;
+    border-bottom: none;
+    border-radius: 6px 6px 0 0;
+    background-color: #f9fafb;
+}
+
+.ql-container {
+    border-bottom: 1px solid #d1d5db;
+    border-left: 1px solid #d1d5db;
+    border-right: 1px solid #d1d5db;
+    border-top: none;
+    border-radius: 0 0 6px 6px;
+}
+
+.ql-editor:focus {
+    outline: none;
+    border-color: #6366f1;
+    box-shadow: 0 0 0 1px #6366f1;
+}
+
+.ql-toolbar button {
+    color: #374151;
+}
+
+.ql-toolbar button:hover {
+    color: #6366f1;
+}
+
+.ql-toolbar button.ql-active {
+    color: #6366f1;
+}
+
+.ql-toolbar .ql-stroke {
+    stroke: currentColor;
+}
+
+.ql-toolbar .ql-fill {
+    fill: currentColor;
+}
+
+.ql-toolbar .ql-picker {
+    color: #374151;
+}
+
+.ql-toolbar .ql-picker-options {
+    background-color: white;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+/* Prose styles for content display */
+.prose {
+    color: #374151;
+    line-height: 1.6;
+}
+
+.prose h1, .prose h2, .prose h3, .prose h4, .prose h5, .prose h6 {
+    color: #111827;
+    font-weight: 600;
+    margin-top: 1.5em;
+    margin-bottom: 0.5em;
+}
+
+.prose h1 {
+    font-size: 1.875rem;
+}
+
+.prose h2 {
+    font-size: 1.5rem;
+}
+
+.prose h3 {
+    font-size: 1.25rem;
+}
+
+.prose p {
+    margin-bottom: 1em;
+}
+
+.prose ul, .prose ol {
+    margin-bottom: 1em;
+    padding-left: 1.5em;
+}
+
+.prose li {
+    margin-bottom: 0.25em;
+}
+
+.prose strong {
+    font-weight: 600;
+}
+
+.prose em {
+    font-style: italic;
+}
+
+.prose a {
+    color: #6366f1;
+    text-decoration: underline;
+}
+
+.prose a:hover {
+    color: #4f46e5;
+}
+
+.prose blockquote {
+    border-left: 4px solid #e5e7eb;
+    padding-left: 1em;
+    margin: 1em 0;
+    font-style: italic;
+    color: #6b7280;
+} 
