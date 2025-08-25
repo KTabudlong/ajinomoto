@@ -100,6 +100,18 @@ trait Searchable
     }
 
     /**
+     * Scope for applying filters (alias for ApplyFilters)
+     *
+     * @param Builder $query
+     * @param array $filters
+     * @return Builder
+     */
+    public function scopeFilter(Builder $query, array $filters): Builder
+    {
+        return $this->scopeApplyFilters($query, $filters);
+    }
+
+    /**
      * Scope for ordering by sort_order and name
      *
      * @param Builder $query

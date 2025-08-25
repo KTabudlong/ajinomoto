@@ -55,17 +55,17 @@ const adminPanelItems = [
   },
   {
     label: 'Topics',
-    href: route('admin.topics.index'),
+                            href: route('admin.topics'),
     icon: <BookOpen size={32} className="text-indigo-600" />,
   },
   {
     label: 'Sites',
-    href: route('admin.sites.index'),
+                            href: route('admin.sites'),
     icon: <MapPin size={32} className="text-blue-600" />,
   },
   {
     label: 'Activities',
-    href: route('admin.activities.index'),
+                            href: route('admin.activities'),
     icon: <Calendar size={32} className="text-green-600" />,
   },
 ];

@@ -18,29 +18,14 @@ class TopicRepository implements TopicRepositoryInterface
      */
     public function getPaginated(array $filters = []): LengthAwarePaginator
     {
-        $query = $this->model->with(['subject']);
+        $query = $this->model->newQuery();
 
         // Apply search filter
         if (isset($filters['search']) && !empty($filters['search'])) {
             $search = $filters['search'];
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('description', 'like', "%{$search}%")
-                  ->orWhereHas('subject', function ($subjectQuery) use ($search) {
-                      $subjectQuery->where('name', 'like', "%{$search}%");
-                  });
-            });
-        }
-
-        // Apply subject filter
-        if (isset($filters['subject_id']) && !empty($filters['subject_id'])) {
-            $query->where('subject_id', $filters['subject_id']);
-        }
-
-        // Apply tutor filter (for myTopics functionality)
-        if (isset($filters['tutor_id']) && !empty($filters['tutor_id'])) {
-            $query->whereHas('subject', function ($subjectQuery) use ($filters) {
-                $subjectQuery->where('tutor_id', $filters['tutor_id']);
+                  ->orWhere('description', 'like', "%{$search}%");
             });
         }
 
@@ -70,13 +55,7 @@ class TopicRepository implements TopicRepositoryInterface
         return $query->paginate($filters['per_page'] ?? 15);
     }
 
-    /**
-     * Get all topics for a specific subject
-     */
-    public function getBySubject(int $subjectId): Collection
-    {
-        return $this->model->where('subject_id', $subjectId)->get();
-    }
+
 
     /**
      * Find topic by ID with trashed records

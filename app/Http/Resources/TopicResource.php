@@ -18,15 +18,8 @@ class TopicResource extends JsonResource
             'id' => $this->id,
             'name' => $this->name,
             'description' => $this->description,
-            'price_per_session' => $this->price_per_session,
-            'duration' => $this->duration,
-            'subject_id' => $this->subject_id,
-            'subject' => $this->whenLoaded('subject', function () {
-                return [
-                    'id' => $this->subject->id,
-                    'name' => $this->subject->name,
-                ];
-            }),
+            'is_active' => $this->is_active,
+            'sort_order' => $this->sort_order,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
             'deleted_at' => $this->deleted_at,

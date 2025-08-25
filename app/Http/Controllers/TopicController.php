@@ -7,6 +7,7 @@ use App\Models\Topic;
 use App\Services\TopicService;
 use App\Traits\HasCrudOperations;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -53,7 +54,7 @@ class TopicController extends Controller
 
     protected function getIndexRoute(): string
     {
-        return 'topics.index';
+        return 'topics';
     }
 
     protected function getResourceName(): string
@@ -84,12 +85,37 @@ class TopicController extends Controller
     {
         $filters = $request->only(['search', 'sort_by', 'sort_order', 'trashed']);
         
-        $topics = $this->topicService->getPaginatedAsResource($filters);
-
-        return Inertia::render('Topics/Index', [
-            'topics' => $topics,
-            'filters' => $filters,
-        ]);
+        try {
+            $topics = $this->topicService->getPaginatedAsResource($filters);
+            
+            // Debug logging
+            Log::info('TopicController::index - topics data:', [
+                'type' => get_class($topics),
+                'data' => $topics,
+                'filters' => $filters
+            ]);
+            
+            return Inertia::render('Topics/Index', [
+                'topics' => $topics,
+                'filters' => $filters,
+            ]);
+        } catch (\Exception $e) {
+            Log::error('TopicController::index - error:', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            // Return empty data structure to prevent frontend crash
+            return Inertia::render('Topics/Index', [
+                'topics' => [
+                    'data' => [],
+                    'meta' => [],
+                    'links' => [],
+                    'filters' => []
+                ],
+                'filters' => $filters,
+            ]);
+        }
     }
 
     /**

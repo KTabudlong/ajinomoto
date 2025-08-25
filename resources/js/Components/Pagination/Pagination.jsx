@@ -1,7 +1,7 @@
 import { Link } from "@inertiajs/react";
 import classNames from "classnames";
 
-export default function Pagination({ links = [] }) {
+const Pagination = ({ links = [] }) => {
   /**
    * Handle both array and object pagination links gracefully
    */
@@ -37,7 +37,7 @@ export default function Pagination({ links = [] }) {
       })}
     </div>
   );
-}
+};
 
 function PaginationItem({ active, label, url }) {
   const className = classNames(
@@ -85,4 +85,6 @@ function PageInactive({ label }) {
   return (
     <div className={className} dangerouslySetInnerHTML={{ __html: label }} />
   );
-}
+};
+
+export default Pagination;

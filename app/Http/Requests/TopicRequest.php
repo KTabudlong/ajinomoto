@@ -25,9 +25,8 @@ class TopicRequest extends FormRequest
         $baseRules = [
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string', 'max:1000'],
-            'price_per_session' => ['required', 'numeric', 'min:0', 'max:999999.9999'],
-            'duration' => ['required', 'integer', 'min:1', 'max:2'],
-            'subject_id' => ['nullable', 'exists:subjects,id'], // Made optional since it's set by route
+            'is_active' => ['boolean'],
+            'sort_order' => ['nullable', 'integer', 'min:0'],
         ];
 
         if ($this->isMethod('PUT')) {
@@ -50,15 +49,9 @@ class TopicRequest extends FormRequest
         return [
             'name.required' => 'Topic name is required.',
             'name.unique' => 'This topic name already exists.',
-            'price_per_session.required' => 'Price per session is required.',
-            'price_per_session.numeric' => 'Price must be a valid number.',
-            'price_per_session.min' => 'Price cannot be negative.',
-            'duration.required' => 'Duration is required.',
-            'duration.integer' => 'Duration must be a whole number.',
-            'duration.min' => 'Duration must be at least 1 hour.',
-            'duration.max' => 'Duration cannot exceed 2 hours.',
-            'subject_id.required' => 'Subject is required.',
-            'subject_id.exists' => 'Selected subject does not exist.',
+            'is_active.boolean' => 'Active status must be true or false.',
+            'sort_order.integer' => 'Sort order must be a whole number.',
+            'sort_order.min' => 'Sort order cannot be negative.',
         ];
     }
 } 

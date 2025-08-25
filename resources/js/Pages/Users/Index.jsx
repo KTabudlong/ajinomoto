@@ -28,7 +28,7 @@ const Index = () => {
     }
 
     // Use Inertia router for SPA navigation
-    router.get(route("admin.users.index"), Object.fromEntries(currentParams), {
+            router.get(route("admin.users"), Object.fromEntries(currentParams), {
       preserveScroll: true,
       preserveState: true,
     });
@@ -42,7 +42,7 @@ const Index = () => {
             label: user.role_id === 1 ? "Admin Panel" : "Admin", 
             href: user.role_id === 1 ? route("admin.super.dashboard") : route("admin.dashboard") 
           },
-          { label: "Users", href: route("admin.users.index") },
+          { label: "Users", href: route("admin.users") },
         ]}
       />
       <h1 className="mb-6 sm:mb-8 text-2xl sm:text-3xl font-bold">

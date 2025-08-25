@@ -4,4 +4,12 @@
  * Following DRY principle: Don't Repeat Yourself
  */
 
-export { default as Card, CardContent, CardHeader, CardTitle, CardDescription, CardAction, CardFooter } from './Card';
+export {
+  default as Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardAction,
+  CardFooter,
+} from './Card.jsx';

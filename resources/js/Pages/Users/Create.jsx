@@ -29,7 +29,7 @@ const Create = () => {
       <div>
         <h1 className="mb-6 sm:mb-8 text-2xl sm:text-3xl font-bold">
           <Link
-            href={route("admin.users.index")}
+            href={route("admin.users")}
             className="text-indigo-600 hover:text-indigo-700"
           >
             Users

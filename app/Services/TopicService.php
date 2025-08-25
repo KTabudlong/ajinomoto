@@ -7,6 +7,7 @@ use App\Http\Resources\TopicCollection;
 use App\Http\Resources\TopicResource;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\Log;
 
 class TopicService
 {
@@ -27,17 +28,27 @@ class TopicService
      */
     public function getPaginatedAsResource(array $filters = []): TopicCollection
     {
-        $topics = $this->getPaginated($filters);
-        return new TopicCollection($topics);
+        try {
+            $topics = $this->getPaginated($filters);
+            
+            // Debug logging
+            Log::info('TopicService::getPaginatedAsResource - topics data:', [
+                'type' => get_class($topics),
+                'count' => method_exists($topics, 'count') ? $topics->count() : 'N/A',
+                'filters' => $filters
+            ]);
+            
+            return new TopicCollection($topics);
+        } catch (\Exception $e) {
+            Log::error('TopicService::getPaginatedAsResource - error:', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            throw $e;
+        }
     }
 
-    /**
-     * Get all topics for a specific subject
-     */
-    public function getBySubject(int $subjectId): Collection
-    {
-        return $this->topicRepository->getBySubject($subjectId);
-    }
+
 
     /**
      * Find topic by ID with trashed records

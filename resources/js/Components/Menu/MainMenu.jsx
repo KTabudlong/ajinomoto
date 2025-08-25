@@ -38,19 +38,19 @@ export default function MainMenu({ className }) {
       link: "admin.users",
       icon: <Users size={20} />,
     },
-    {
+            {
       text: "Topics",
-      link: "admin.topics.index",
+      link: "admin.topics",
       icon: <BookOpenText size={20} />,
     },
     {
       text: "Sites",
-      link: "admin.sites.index",
+      link: "admin.sites",
       icon: <CalendarDays size={20} />,
     },
     {
       text: "Activities",
-      link: "admin.activities.index",
+      link: "admin.activities",
       icon: <CalendarDays size={20} />,
     },
   ];

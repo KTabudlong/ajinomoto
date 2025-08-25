@@ -12,10 +12,7 @@ interface TopicRepositoryInterface
      */
     public function getPaginated(array $filters = []): LengthAwarePaginator;
 
-    /**
-     * Get all topics for a specific subject
-     */
-    public function getBySubject(int $subjectId): Collection;
+
 
     /**
      * Find topic by ID with trashed records

@@ -24,7 +24,7 @@ class UserController extends Controller
     protected string $collectionClass = UserCollection::class;
     protected string $resourceName = 'users';
     protected array $dependencies = [];
-    protected array $defaultRelationships = ['role'];
+    protected array $defaultRelationships = [];
 
     // Abstract method implementations
     protected function getModel(): string
@@ -80,7 +80,7 @@ class UserController extends Controller
             });
         }
 
-        $query->filter(request()->only('search', 'trashed'));
+
 
         // Apply sorting
         $sortBy = $filters['sort_by'] ?? 'first_name';

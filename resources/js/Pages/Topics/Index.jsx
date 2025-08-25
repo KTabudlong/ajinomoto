@@ -1,256 +1,291 @@
-import { Link, usePage, router } from "@inertiajs/react";
-import { Trash2, Edit, RotateCcw } from "lucide-react";
-import { useState } from "react";
+import React, { useState } from 'react';
+import { Link, router } from '@inertiajs/react';
+import {
+  Plus,
+  Search,
+  Filter,
+  Trash2,
+  Edit,
+  Eye,
+  RotateCcw,
+} from 'lucide-react';
+import MainLayout from '@/Layouts/MainLayout';
+import Button from '@/Components/Button/Button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/Components/Card';
+import { Badge } from '@/Components/Badge/Badge';
 
-import MainLayout from "@/Layouts/MainLayout";
-import Breadcrumbs from "@/Components/Breadcrumbs/Breadcrumbs";
-import SearchBar from "@/Components/SearchBar/SearchBar";
-import Pagination from "@/Components/Pagination/Pagination";
-import SortableTable from "@/Components/Table/SortableTable";
-import ConfirmationModal from "@/Components/Modal/ConfirmationModal";
+import Pagination from '@/Components/Pagination/Pagination';
+import ConfirmationModal from '@/Components/Modal/ConfirmationModal';
+import { FlashMessage } from '@/Components/Messages';
+import Breadcrumbs from '@/Components/Breadcrumbs/Breadcrumbs';
 
-const Index = () => {
-  const { topics, currentSubject, filters, auth } = usePage().props;
-  const user = auth.user;
-  const [deleteModal, setDeleteModal] = useState({
-    isOpen: false,
-    topic: null,
-  });
-  const [restoreModal, setRestoreModal] = useState({
-    isOpen: false,
-    topic: null,
-  });
+export default function Index({ auth, topics, filters = {} }) {
+  // Debug logging
+  console.log('Topics data received:', topics);
+  console.log('Topics type:', typeof topics);
+  console.log('Topics.data type:', typeof topics?.data);
+  console.log('Topics.data:', topics?.data);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showRestoreModal, setShowRestoreModal] = useState(false);
+  const [topicToDelete, setTopicToDelete] = useState(null);
+  const [topicToRestore, setTopicToRestore] = useState(null);
 
-  // Handle ResourceCollection nested structure
-  const data = topics.data?.data || topics.data || topics;
-  const links = topics.data?.links || topics.links || [];
+  const handleDelete = topic => {
+    setTopicToDelete(topic);
+    setShowDeleteModal(true);
+  };
 
-  // Ensure data is an array for the table
-  const tableData = Array.isArray(data) ? data : [];
+  const handleRestore = topic => {
+    setTopicToRestore(topic);
+    setShowRestoreModal(true);
+  };
 
-  const handleSort = (columnName, sortOrder) => {
-    const currentParams = new URLSearchParams(window.location.search);
-    currentParams.set("sort_by", columnName);
-    currentParams.set("sort_order", sortOrder);
-
-    // Preserve search parameter if it exists
-    const searchParam = currentParams.get("search");
-    if (searchParam) {
-      currentParams.set("search", searchParam);
+  const confirmDelete = () => {
+    if (topicToDelete) {
+      router.delete(route('admin.topics.destroy', topicToDelete.id), {
+        onSuccess: () => {
+          setShowDeleteModal(false);
+          setTopicToDelete(null);
+        },
+      });
     }
+  };
 
-    const queryParams = Object.fromEntries(currentParams);
+  const confirmRestore = () => {
+    if (topicToRestore) {
+      router.put(
+        route('admin.topics.restore', topicToRestore.id),
+        {},
+        {
+          onSuccess: () => {
+            setShowRestoreModal(false);
+            setTopicToRestore(null);
+          },
+        }
+      );
+    }
+  };
 
-    // Use Inertia router for SPA navigation
+  const handleSearch = searchTerm => {
     router.get(
-      route("admin.topics.by-subject", currentSubject.id),
-      queryParams,
+      route('admin.topics'),
+      { search: searchTerm },
       {
-        replace: true,
         preserveState: true,
-      },
+        replace: true,
+      }
     );
   };
 
-  const handleDeleteClick = (topic) => {
-    setDeleteModal({ isOpen: true, topic });
+  const handleFilter = filters => {
+    router.get(route('admin.topics'), filters, {
+      preserveState: true,
+      replace: true,
+    });
   };
 
-  const handleDeleteConfirm = () => {
-    if (deleteModal.topic) {
-      router.delete(
-        route("admin.topics.destroy", [
-          currentSubject.id,
-          deleteModal.topic.id,
-        ]),
-        {
-          onSuccess: () => {
-            setDeleteModal({ isOpen: false, topic: null });
-          },
-        },
-      );
+  const getStatusBadge = topic => {
+    if (topic.deleted_at) {
+      return <Badge variant="destructive">Deleted</Badge>;
     }
-  };
-
-  const handleDeleteCancel = () => {
-    setDeleteModal({ isOpen: false, topic: null });
-  };
-
-  const handleRestoreClick = (topic) => {
-    setRestoreModal({ isOpen: true, topic });
-  };
-
-  const handleRestoreConfirm = () => {
-    if (restoreModal.topic) {
-      router.put(
-        route("admin.topics.restore", [
-          currentSubject.id,
-          restoreModal.topic.id,
-        ]),
-        {
-          onSuccess: () => {
-            setRestoreModal({ isOpen: false, topic: null });
-          },
-        },
-      );
-    }
-  };
-
-  const handleRestoreCancel = () => {
-    setRestoreModal({ isOpen: false, topic: null });
+    return topic.is_active ? (
+      <Badge variant="default">Active</Badge>
+    ) : (
+      <Badge variant="secondary">Inactive</Badge>
+    );
   };
 
   return (
-    <div>
-      <Breadcrumbs
-        items={[
-          { 
-            label: user.role_id === 1 ? "Admin Panel" : "Admin", 
-            href: user.role_id === 1 ? route("admin.super.dashboard") : route("admin.dashboard") 
-          },
-          { label: "Subjects", href: route("admin.subjects") },
-          {
-            label: currentSubject ? currentSubject.name : "Topics",
-            href: currentSubject ? route("admin.subjects.edit", currentSubject.id) : route("admin.subjects") 
-          },
-          {
-            label: "Topics",
-            href: route("admin.topics.by-subject", currentSubject?.id || ""),
-          },
-        ]}
-      />
-      <h1 className="mb-6 sm:mb-8 text-2xl sm:text-3xl font-bold">
-        {currentSubject ? `Topics for ${currentSubject.name}` : "Topics"}
-      </h1>
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 sm:gap-0 mb-6">
-        <SearchBar
-          placeholder="Search topics..."
-          routeName="topics.by-subject"
-          routeParams={{ subject: currentSubject.id }}
-        />
-        <Link
-          className="btn-indigo focus:outline-none w-full sm:w-auto"
-          href={route("admin.topics.create", currentSubject.id)}
-        >
-          <span>Create</span>
-          <span className="hidden md:inline"> Topic</span>
+    <>
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="font-semibold text-xl text-gray-800 leading-tight">
+          Topics
+        </h2>
+        <Link href={route('admin.topics.create')}>
+          <Button>
+            <Plus className="w-4 h-4 mr-2" />
+            Create Topic
+          </Button>
         </Link>
       </div>
-      <SortableTable
-        columns={[
-          {
-            label: "Name",
-            name: "name",
-            renderCell: (row) => (
-              <>
-                <>{row.name}</>
-                {row.deleted_at && (
-                  <Trash2 size={16} className="ml-2 text-gray-400" />
-                )}
-              </>
-            ),
-          },
-          {
-            label: "Price",
-            name: "price_per_session",
-            renderCell: (row) =>
-              `$${parseFloat(row.price_per_session).toFixed(2)}`,
-          },
-          {
-            label: "Duration",
-            name: "duration",
-            renderCell: (row) =>
-              `${row.duration} hour${row.duration > 1 ? "s" : ""}`,
-          },
-          {
-            label: "Description",
-            name: "description",
-            renderCell: (row) => (
-              <div className="max-w-[200px] truncate" title={row.description}>
-                {row.description}
+
+
+      <div className="py-12">
+        <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
+          <FlashMessage />
+
+          <Breadcrumbs
+            items={[
+              {
+                label: 'Admin',
+                href: route('admin.dashboard'),
+              },
+              {
+                label: 'Topics',
+                href: route('admin.topics'),
+              },
+            ]}
+          />
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Manage Topics</CardTitle>
+              <div className="flex flex-col sm:flex-row gap-4">
+                <div className="flex-1 relative flex bg-white rounded shadow">
+                  <input
+                    type="text"
+                    name="search"
+                    placeholder="Search topics..."
+                    autoComplete="off"
+                    defaultValue={filters?.search || ''}
+                    onChange={e => handleSearch(e.target.value)}
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-l-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  />
+                </div>
+                <Button variant="outline" onClick={() => handleFilter({})}>
+                  <Filter className="w-4 h-4 mr-2" />
+                  Clear Filters
+                </Button>
               </div>
-            ),
-          },
-          {
-            label: "Created",
-            name: "created_at",
-            renderCell: (row) => (
-              <div className="text-gray-500 text-sm">
-                {new Date(row.created_at).toLocaleDateString()}
-              </div>
-            ),
-          },
-          {
-            label: "Actions",
-            name: "actions",
-            sortable: false,
-            renderCell: (row) => (
-              <div className="flex items-center space-x-2">
-                <Link
-                  href={route("admin.topics.edit", [currentSubject.id, row.id])}
-                  className="text-indigo-600 hover:text-indigo-900 transition-colors"
-                  title="Edit Topic"
-                >
-                  <Edit size={16} />
-                </Link>
-                {row.deleted_at ? (
-                  <button
-                    onClick={() => handleRestoreClick(row)}
-                    className="text-green-600 hover:text-green-900 transition-colors"
-                    title="Restore Topic"
-                  >
-                    <RotateCcw size={16} />
-                  </button>
-                ) : (
-                  <button
-                    onClick={() => handleDeleteClick(row)}
-                    className="text-red-600 hover:text-red-900 transition-colors"
-                    title="Delete Topic"
-                  >
-                    <Trash2 size={16} />
-                  </button>
-                )}
-              </div>
-            ),
-          },
-        ]}
-        rows={tableData}
-        onSort={handleSort}
-        currentSortBy={filters?.sort_by || "name"}
-        currentSortOrder={filters?.sort_order || "asc"}
-      />
-      <Pagination links={Array.isArray(links) ? links : []} />
+            </CardHeader>
+            <CardContent>
+              {!topics?.data || !Array.isArray(topics.data) ? (
+                <div className="text-center py-8">
+                  <p className="text-gray-500">Invalid data structure received from server.</p>
+                  <p className="text-sm text-gray-400 mt-2">Please check the console for details.</p>
+                  <Link href={route('admin.topics.create')}>
+                    <Button className="mt-4">
+                      <Plus className="w-4 h-4 mr-2" />
+                      Create Your First Topic
+                    </Button>
+                  </Link>
+                </div>
+              ) : topics.data.length === 0 ? (
+                <div className="text-center py-8">
+                  <p className="text-gray-500">No topics found.</p>
+                  <Link href={route('admin.topics.create')}>
+                    <Button className="mt-4">
+                      <Plus className="w-4 h-4 mr-2" />
+                      Create Your First Topic
+                    </Button>
+                  </Link>
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Name
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Description
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Status
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Sort Order
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Created
+                        </th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Actions
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {Array.isArray(topics?.data) && topics.data.map(topic => (
+                        <tr key={topic.id} className="hover:bg-gray-50">
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="text-sm font-medium text-gray-900">
+                              {topic.name}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div
+                              className="text-sm text-gray-500 max-w-[200px] truncate"
+                              title={topic.description}
+                            >
+                              {topic.description}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            {getStatusBadge(topic)}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            {topic.sort_order || '-'}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                            {new Date(topic.created_at).toLocaleDateString()}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                            <div className="flex space-x-2">
+                              <Link href={route('admin.topics.edit', topic.id)}>
+                                <Button variant="ghost" size="sm">
+                                  <Edit className="w-4 h-4" />
+                                </Button>
+                              </Link>
+                              {topic.deleted_at ? (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleRestore(topic)}
+                                  className="text-green-600 hover:text-green-900"
+                                >
+                                  <RotateCcw className="w-4 h-4" />
+                                </Button>
+                              ) : (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleDelete(topic)}
+                                  className="text-red-600 hover:text-red-900"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </Button>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+
+              {topics?.links && Array.isArray(topics?.data) && (
+                <div className="mt-6">
+                  <Pagination links={topics.links} />
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      </div>
 
       <ConfirmationModal
-        isOpen={deleteModal.isOpen}
-        onClose={handleDeleteCancel}
-        onConfirm={handleDeleteConfirm}
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        onConfirm={confirmDelete}
         title="Delete Topic"
-        message={`Are you sure you want to delete "${deleteModal.topic?.name}"? This action cannot be undone.`}
+        message={`Are you sure you want to delete "${topicToDelete?.name || 'this topic'}"? This action cannot be undone.`}
         confirmText="Delete"
-        cancelText="Cancel"
-        confirmVariant="danger"
+        confirmVariant="destructive"
       />
 
       <ConfirmationModal
-        isOpen={restoreModal.isOpen}
-        onClose={handleRestoreCancel}
-        onConfirm={handleRestoreConfirm}
+        isOpen={showRestoreModal}
+        onClose={() => setShowRestoreModal(false)}
+        onConfirm={confirmRestore}
         title="Restore Topic"
-        message={`Are you sure you want to restore "${restoreModal.topic?.name}"?`}
+        message={`Are you sure you want to restore "${topicToRestore?.name || 'this topic'}"?`}
         confirmText="Restore"
-        cancelText="Cancel"
-        confirmVariant="success"
+        confirmVariant="default"
       />
-    </div>
+    </>
   );
-};
+}
 
-/**
- * Persistent Layout (Inertia.js)
- *
- * [Learn more](https://inertiajs.com/pages#persistent-layouts)
- */
-Index.layout = (page) => <MainLayout title="Topics" children={page} />;
-
-export default Index;
+Index.layout = (page) => <MainLayout title="Topics">{page}</MainLayout>;

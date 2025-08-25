@@ -6,10 +6,11 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use App\Traits\Searchable;
 
 class Topic extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory, SoftDeletes, Searchable;
 
     protected $fillable = [
         'name',
@@ -21,6 +22,11 @@ class Topic extends Model
     protected $casts = [
         'is_active' => 'boolean',
         'sort_order' => 'integer',
+    ];
+
+    protected $searchable = [
+        'name',
+        'description',
     ];
 
     public function activities(): HasMany

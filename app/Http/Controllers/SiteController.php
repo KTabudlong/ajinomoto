@@ -54,7 +54,7 @@ class SiteController extends Controller
 
         Site::create($validated);
 
-        return redirect()->route('admin.sites.index')->with('success', 'Site created successfully.');
+        return redirect()->route('admin.sites')->with('success', 'Site created successfully.');
     }
 
     /**
@@ -96,7 +96,7 @@ class SiteController extends Controller
 
         $site->update($validated);
 
-        return redirect()->route('admin.sites.index')->with('success', 'Site updated successfully.');
+        return redirect()->route('admin.sites')->with('success', 'Site updated successfully.');
     }
 
     /**
@@ -106,7 +106,7 @@ class SiteController extends Controller
     {
         $site->delete();
 
-        return redirect()->route('admin.sites.index')->with('success', 'Site deleted successfully.');
+        return redirect()->route('admin.sites')->with('success', 'Site deleted successfully.');
     }
 
     /**
@@ -116,6 +116,6 @@ class SiteController extends Controller
     {
         $site->restore();
 
-        return redirect()->route('admin.sites.index')->with('success', 'Site restored successfully.');
+        return redirect()->route('admin.sites')->with('success', 'Site restored successfully.');
     }
 }

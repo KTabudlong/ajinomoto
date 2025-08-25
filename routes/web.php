@@ -96,7 +96,7 @@ Route::prefix('admin')->middleware(['auth', 'verified'])->name('admin.')->group(
 
     // Topic Management
     Route::controller(TopicController::class)->group(function () {
-        Route::get('/topics', 'index')->name('topics.index');
+        Route::get('/topics', 'index')->name('topics');
         Route::get('/topics/create', 'create')->name('topics.create');
         Route::post('/topics', 'store')->name('topics.store');
         Route::get('/topics/{topic}/edit', 'edit')->name('topics.edit');
@@ -109,8 +109,6 @@ Route::prefix('admin')->middleware(['auth', 'verified'])->name('admin.')->group(
     Route::controller(ScheduleController::class)->group(function () {
         Route::get('/schedules', 'index')->name('schedules');
         Route::get('/schedules/create', 'create')->name('schedules.create');
-        Route::post('/schedules/store', 'store')->name('schedules.store');
-        Route::get('/schedules/{schedule}/edit', 'edit')->name('schedules.edit');
         Route::put('/schedules/{schedule}', 'update')->name('schedules.update');
         Route::delete('/schedules/{schedule}', 'destroy')->name('schedules.destroy');
         Route::put('/schedules/{schedule}/restore', 'restore')->name('schedules.restore');
@@ -118,7 +116,7 @@ Route::prefix('admin')->middleware(['auth', 'verified'])->name('admin.')->group(
 
     // Activity Management
     Route::controller(ActivityController::class)->group(function () {
-        Route::get('/activities', 'index')->name('activities.index');
+        Route::get('/activities', 'index')->name('activities');
         Route::get('/activities/create', 'create')->name('activities.create');
         Route::post('/activities', 'store')->name('activities.store');
         Route::get('/activities/{activity}', 'show')->name('activities.show');
@@ -133,7 +131,7 @@ Route::prefix('admin')->middleware(['auth', 'verified'])->name('admin.')->group(
 
     // Site Management
     Route::controller(\App\Http\Controllers\SiteController::class)->group(function () {
-        Route::get('/sites', 'index')->name('sites.index');
+        Route::get('/sites', 'index')->name('sites');
         Route::get('/sites/create', 'create')->name('sites.create');
         Route::post('/sites', 'store')->name('sites.store');
         Route::get('/sites/{site}', 'show')->name('sites.show');

@@ -56,9 +56,9 @@ const Edit = () => {
     if (isDirty) {
       e.preventDefault();
       setShowConfirm(true);
-              setNextUrl(route("admin.users.index"));
+              setNextUrl(route("admin.users"));
     } else {
-        router.visit(route("admin.users.index"));
+        router.visit(route("admin.users"));
     }
   };
 
@@ -108,7 +108,7 @@ const Edit = () => {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 sm:gap-0 mb-6 sm:mb-8">
         <Breadcrumbs
           items={[
-            { label: "Users", href: route("admin.users.index") },
+            { label: "Users", href: route("admin.users") },
             { label: `${data.first_name} ${data.last_name}`, href: "#" },
           ]}
         />
@@ -209,7 +209,7 @@ const Edit = () => {
               </DeleteButton>
             )}
             <div className="flex flex-col sm:flex-row gap-2 sm:space-x-2">
-              <BackButton href={route("admin.users.index")} />
+              <BackButton href={route("admin.users")} />
               <LoadingButton
                 loading={processing}
                 type="submit"

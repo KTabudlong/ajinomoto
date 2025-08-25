@@ -1,17 +1,17 @@
-import React from "react";
-import Modal from "@/Components/Modal";
-import PrimaryButton from "@/Components/PrimaryButton";
-import SecondaryButton from "@/Components/SecondaryButton";
+import React from 'react';
+import Modal from '@/Components/Modal';
+import PrimaryButton from '@/Components/PrimaryButton';
+import SecondaryButton from '@/Components/SecondaryButton';
 
 const ConfirmationModal = ({
   isOpen,
   onClose,
   onConfirm,
-  title = "Confirm Action",
-  message = "Are you sure you want to proceed?",
-  confirmText = "Confirm",
-  cancelText = "Cancel",
-  confirmVariant = "danger",
+  title = 'Confirm Action',
+  message = 'Are you sure you want to proceed?',
+  confirmText = 'Confirm',
+  cancelText = 'Cancel',
+  confirmVariant = 'danger',
   isLoading = false,
   disabled = false,
 }) => {
@@ -32,7 +32,7 @@ const ConfirmationModal = ({
       <div className="p-6">
         <div className="mb-4">
           <h3 className="text-lg font-medium text-gray-900">{title}</h3>
-          {typeof message === "string" ? (
+          {typeof message === 'string' ? (
             <p className="mt-2 text-sm text-gray-600">{message}</p>
           ) : (
             <div className="mt-2 text-sm text-gray-600">{message}</div>
@@ -48,7 +48,7 @@ const ConfirmationModal = ({
             onClick={handleConfirm}
             disabled={disabled || isLoading}
           >
-            {isLoading ? "Processing..." : confirmText}
+            {isLoading ? 'Processing...' : confirmText}
           </PrimaryButton>
         </div>
       </div>
