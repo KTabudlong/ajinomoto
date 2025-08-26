@@ -6,6 +6,7 @@ import {
   Users,
   CalendarDays,
   Settings,
+  FileSpreadsheet,
 } from "lucide-react";
 
 export default function MainMenu({ className }) {
@@ -52,6 +53,11 @@ export default function MainMenu({ className }) {
       text: "Activities",
       link: "admin.activities",
       icon: <CalendarDays size={20} />,
+    },
+    {
+      text: "Excel Processor",
+      link: "admin.excel",
+      icon: <FileSpreadsheet size={20} />,
     },
   ];
 

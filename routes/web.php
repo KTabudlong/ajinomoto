@@ -140,6 +140,19 @@ Route::prefix('admin')->middleware(['auth', 'verified'])->name('admin.')->group(
         Route::delete('/sites/{site}', 'destroy')->name('sites.destroy');
         Route::put('/sites/{site}/restore', 'restore')->name('sites.restore');
     });
+
+    // Excel Processing
+    Route::controller(\App\Http\Controllers\ExcelController::class)->group(function () {
+        Route::get('/excel', 'index')->name('excel');
+        Route::post('/excel/process', 'process')->name('excel.process');
+        Route::post('/excel/preview', 'preview')->name('excel.preview');
+        Route::post('/excel/download', 'download')->name('excel.download');
+        Route::post('/excel/export-master-excel', 'exportMasterExcel')->name('excel.export-master-excel');
+        Route::post('/excel/export-master-csv', 'exportMasterCsv')->name('excel.export-master-csv');
+        
+        // Test route for debugging calendar export
+        Route::get('/excel/test-calendar', 'testCalendarExport')->name('excel.test-calendar');
+    });
 });
 
 /*

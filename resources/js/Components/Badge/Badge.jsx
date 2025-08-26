@@ -8,12 +8,12 @@ const badgeVariants = {
   outline: "border border-gray-200 text-gray-700",
 };
 
-function Badge({ 
+const Badge = ({ 
   className, 
   variant = "default", 
   children, 
   ...props 
-}) {
+}) => {
   return (
     <span
       className={cn(
@@ -26,6 +26,6 @@ function Badge({
       {children}
     </span>
   );
-}
+};
 
-export { Badge };
+export default Badge;
