@@ -780,7 +780,7 @@ class ExcelProcessingService
      */
     private function setupMasterFormatWorksheet($worksheet, $tolucaData, $year)
     {
-        // Set column widths for calendar format
+        // Set column widths for task table
         $worksheet->getColumnDimension('A')->setWidth(15); // Task ID
         $worksheet->getColumnDimension('B')->setWidth(30); // Task Name
         $worksheet->getColumnDimension('C')->setWidth(20); // Site
@@ -788,74 +788,27 @@ class ExcelProcessingService
         $worksheet->getColumnDimension('E')->setWidth(20); // Frequency
         $worksheet->getColumnDimension('F')->setWidth(20); // Original Due Date
         
-        // Set calendar column widths (7 columns for days of week)
-        for ($col = 7; $col <= 90; $col++) { // 12 months * 7 columns + 6 task columns
-            $worksheet->getColumnDimension(\PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($col))->setWidth(15);
-        }
+        // Set calendar column widths (A for month, B-H for days of week)
+        $worksheet->getColumnDimension('A')->setWidth(15); // Month names
+        $worksheet->getColumnDimension('B')->setWidth(15); // Sunday
+        $worksheet->getColumnDimension('C')->setWidth(15); // Monday
+        $worksheet->getColumnDimension('D')->setWidth(15); // Tuesday
+        $worksheet->getColumnDimension('E')->setWidth(15); // Wednesday
+        $worksheet->getColumnDimension('F')->setWidth(15); // Thursday
+        $worksheet->getColumnDimension('G')->setWidth(15); // Friday
+        $worksheet->getColumnDimension('H')->setWidth(15); // Saturday
         
-        // Create calendar header rows
-        $this->createCalendarHeaders($worksheet);
-        
-        // Create calendar grid for each month
+        // Create calendar grid for each month (vertical layout)
         $this->createCalendarGrid($worksheet, $tolucaData, $year);
         
         // Add borders and styling
         $this->styleCalendarWorksheet($worksheet, $tolucaData);
         
         // Set row heights for calendar rows
-        $this->setCalendarRowHeights($worksheet, 25);
+        $this->setCalendarRowHeights($worksheet, 3);
     }
 
-    /**
-     * Create calendar headers (months and days of week)
-     */
-    private function createCalendarHeaders($worksheet)
-    {
-        $months = [
-            'January', 'February', 'March', 'April', 'May', 'June',
-            'July', 'August', 'September', 'October', 'November', 'December'
-        ];
-        
-        $daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-        
-        $currentRow = 1;
-        
-        // Create month headers for all 12 months
-        foreach ($months as $monthIndex => $month) {
-            // Month header (spans 7 columns)
-            $startCol = $monthIndex * 7 + 7; // Start from column G for January
-            $endCol = $startCol + 6;
-            $startColLetter = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($startCol);
-            $endColLetter = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($endCol);
-            
-            $worksheet->setCellValue($startColLetter . $currentRow, $month);
-            $worksheet->mergeCells($startColLetter . $currentRow . ':' . $endColLetter . $currentRow);
-            
-            // Style month header
-            $worksheet->getStyle($startColLetter . $currentRow)->getFont()->setBold(true);
-            $worksheet->getStyle($startColLetter . $currentRow)->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
-            $worksheet->getStyle($startColLetter . $currentRow)->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID);
-            $worksheet->getStyle($startColLetter . $currentRow)->getFill()->getStartColor()->setRGB('E6E6FA');
-        }
-        
-        $currentRow++;
-        
-        // Create day headers for all 12 months
-        foreach ($months as $monthIndex => $month) {
-            $startCol = $monthIndex * 7 + 7; // Start from column G for January
-            
-            foreach ($daysOfWeek as $dayIndex => $day) {
-                $colLetter = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($startCol + $dayIndex);
-                $worksheet->setCellValue($colLetter . $currentRow, $day);
-                
-                // Style days of week header
-                $worksheet->getStyle($colLetter . $currentRow)->getFont()->setBold(true);
-                $worksheet->getStyle($colLetter . $currentRow)->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
-                $worksheet->getStyle($colLetter . $currentRow)->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID);
-                $worksheet->getStyle($colLetter . $currentRow)->getFill()->getStartColor()->setRGB('F0F8FF');
-            }
-        }
-    }
+
 
     /**
      * Create calendar grid with dates and events
@@ -867,21 +820,24 @@ class ExcelProcessingService
             'July', 'August', 'September', 'October', 'November', 'December'
         ];
         
-        $currentRow = 25; // Start after month headers (12 months * 2 rows + 1)
+        $currentRow = 1; // Start with task table headers
         
-        // Add task information columns
-        $this->addTaskInfoColumns($worksheet, $tolucaData, $currentRow);
+        // Add task information table
+        $this->addTaskInfoTable($worksheet, $tolucaData, $currentRow);
         
-        // Create calendar grid for each month
+        // Add empty space after task table
+        $currentRow += count($tolucaData) + 2; // +2 for header and empty space
+        
+        // Create calendar grid for each month (vertical layout)
         foreach ($months as $monthIndex => $month) {
-            $this->createMonthCalendar($worksheet, $monthIndex, $month, $tolucaData, $currentRow, $year);
+            $currentRow = $this->createMonthCalendarVertical($worksheet, $monthIndex, $month, $tolucaData, $currentRow, $year);
         }
     }
 
     /**
-     * Add task information columns
+     * Add task information table
      */
-    private function addTaskInfoColumns($worksheet, $tolucaData, $startRow)
+    private function addTaskInfoTable($worksheet, $tolucaData, $startRow)
     {
         $taskHeaders = ['Task ID', 'Task Name', 'Site', 'Activity', 'Frequency', 'Original Due Date'];
         
@@ -917,11 +873,31 @@ class ExcelProcessingService
     }
 
     /**
-     * Create calendar grid for a specific month
+     * Create calendar grid for a specific month (vertical layout)
      */
-    private function createMonthCalendar($worksheet, $monthIndex, $month, $tolucaData, $startRow, $year)
+    private function createMonthCalendarVertical($worksheet, $monthIndex, $month, $tolucaData, $startRow, $year)
     {
-        $startCol = $monthIndex * 7 + 7; // Start from column G for January
+        // Add empty space before month
+        $currentRow = $startRow + 1;
+        
+        // Add month header in column A
+        $worksheet->setCellValue('A' . $currentRow, $month);
+        $worksheet->getStyle('A' . $currentRow)->getFont()->setBold(true);
+        $worksheet->getStyle('A' . $currentRow)->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID);
+        $worksheet->getStyle('A' . $currentRow)->getFill()->getStartColor()->setRGB('E6E6FA');
+        
+        $currentRow++;
+        
+        // Add day headers (Sun, Mon, Tue, etc.)
+        $daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+        foreach ($daysOfWeek as $dayIndex => $day) {
+            $colLetter = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($dayIndex + 2); // Start from column B
+            $worksheet->setCellValue($colLetter . $currentRow, $day);
+            $worksheet->getStyle($colLetter . $currentRow)->getFont()->setBold(true);
+            $worksheet->getStyle($colLetter . $currentRow)->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER);
+        }
+        
+        $currentRow++;
         
         // Get first day of month and number of days
         $firstDay = new \DateTime("{$year}-" . str_pad($monthIndex + 1, 2, '0', STR_PAD_LEFT) . "-01");
@@ -929,12 +905,9 @@ class ExcelProcessingService
         $daysInMonth = $lastDay->format('t');
         $firstDayOfWeek = $firstDay->format('w'); // 0 = Sunday, 1 = Monday, etc.
         
-        // Calculate starting position in calendar grid
-        $gridStartRow = $startRow + 1; // Start after task info header
-        
         // Fill calendar grid with dates
         $currentDate = 1;
-        $currentRow = $gridStartRow;
+        $currentRow = $currentRow;
         
         while ($currentDate <= $daysInMonth) {
             // Fill week
@@ -944,27 +917,30 @@ class ExcelProcessingService
                     continue;
                 }
                 
-                // Calculate the correct column for this day of week
-                $currentCol = $startCol + $dayOfWeek;
+                // Calculate the correct column for this day of week (start from column B)
+                $currentCol = $dayOfWeek + 2; // Column B = 2
                 $cellAddress = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($currentCol) . $currentRow;
                 
+                // Set the date
                 $worksheet->setCellValue($cellAddress, $currentDate);
                 
-                // Check if this date has events
+                // Check if this date has events and add them in the row below
                 $dateStr = "{$year}-" . str_pad($monthIndex + 1, 2, '0', STR_PAD_LEFT) . "-" . str_pad($currentDate, 2, '0', STR_PAD_LEFT);
-                $this->markEventsOnDate($worksheet, $cellAddress, $dateStr, $tolucaData, $year);
+                $this->markEventsOnDateVertical($worksheet, $cellAddress, $dateStr, $tolucaData, $year);
                 
                 $currentDate++;
             }
             
             $currentRow++;
         }
+        
+        return $currentRow;
     }
 
     /**
-     * Mark events on a specific date
+     * Mark events on a specific date (vertical layout - events go in row below date)
      */
-    private function markEventsOnDate($worksheet, $cellAddress, $dateStr, $tolucaData, $year)
+    private function markEventsOnDateVertical($worksheet, $cellAddress, $dateStr, $tolucaData, $year)
     {
         $eventsForDate = [];
         
@@ -985,22 +961,35 @@ class ExcelProcessingService
         }
         
         if (!empty($eventsForDate)) {
+            // Parse the cell address manually to avoid PhpSpreadsheet issues
+            preg_match('/([A-Z]+)(\d+)/', $cellAddress, $matches);
+            if (count($matches) >= 3) {
+                $colLetter = $matches[1];
+                $row = (int) $matches[2];
+                
+                // Create event cell address (same column, row below)
+                $eventCellAddress = $colLetter . ($row + 1);
+            } else {
+                // Fallback: skip event placement if we can't parse the address
+                return;
+            }
+            
             // Combine all events for this date
             $combinedEvents = implode("\n\n", $eventsForDate);
             
-            // Set the cell value with event details
-            $worksheet->setCellValue($cellAddress, $combinedEvents);
+            // Set the event details in the row below the date
+            $worksheet->setCellValue($eventCellAddress, $combinedEvents);
             
-            // Style the cell
-            $worksheet->getStyle($cellAddress)->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID);
-            $worksheet->getStyle($cellAddress)->getFill()->getStartColor()->setRGB('90EE90');
-            $worksheet->getStyle($cellAddress)->getFont()->setBold(true);
-            $worksheet->getStyle($cellAddress)->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_LEFT);
-            $worksheet->getStyle($cellAddress)->getAlignment()->setVertical(\PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_TOP);
-            $worksheet->getStyle($cellAddress)->getAlignment()->setWrapText(true);
+            // Style the event cell
+            $worksheet->getStyle($eventCellAddress)->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID);
+            $worksheet->getStyle($eventCellAddress)->getFill()->getStartColor()->setRGB('90EE90');
+            $worksheet->getStyle($eventCellAddress)->getFont()->setBold(true);
+            $worksheet->getStyle($eventCellAddress)->getAlignment()->setHorizontal(\PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_LEFT);
+            $worksheet->getStyle($eventCellAddress)->getAlignment()->setVertical(\PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_TOP);
+            $worksheet->getStyle($eventCellAddress)->getAlignment()->setWrapText(true);
             
             // Adjust row height to accommodate text
-            $worksheet->getRowDimension($worksheet->getCell($cellAddress)->getRow())->setRowHeight(60);
+            $worksheet->getRowDimension($row + 1)->setRowHeight(60);
         }
     }
 
@@ -1009,14 +998,16 @@ class ExcelProcessingService
      */
     private function styleCalendarWorksheet($worksheet, $tolucaData)
     {
-        // Add borders to calendar grid
-        $lastRow = 25 + count($tolucaData) + 6; // Task info + calendar grid
-        $lastCol = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex(90); // 12 months * 7 columns + 6 task columns
+        // Add borders to task table
+        $taskTableEndRow = count($tolucaData) + 1; // +1 for header
+        $worksheet->getStyle('A1:F' . $taskTableEndRow)->getBorders()->getAllBorders()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
         
-        $worksheet->getStyle('A1:' . $lastCol . $lastRow)->getBorders()->getAllBorders()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
+        // Add borders to calendar grid (columns A-H for month and days)
+        $lastRow = $worksheet->getHighestRow();
+        $worksheet->getStyle('A1:H' . $lastRow)->getBorders()->getAllBorders()->setBorderStyle(\PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN);
         
         // Freeze panes for easy navigation
-        $worksheet->freezePane('G26');
+        $worksheet->freezePane('A1');
     }
 
     /**
@@ -1025,16 +1016,17 @@ class ExcelProcessingService
     private function setCalendarRowHeights($worksheet, $startRow)
     {
         // Set row height for task info header
-        $worksheet->getRowDimension($startRow)->setRowHeight(30);
+        $worksheet->getRowDimension(1)->setRowHeight(30);
         
         // Set row heights for task data rows
-        for ($row = $startRow + 1; $row <= $startRow + 10; $row++) { // Assume max 10 tasks
+        for ($row = 2; $row <= 10; $row++) { // Assume max 10 tasks
             $worksheet->getRowDimension($row)->setRowHeight(25);
         }
         
-        // Set row heights for calendar grid rows (6 weeks)
-        for ($row = $startRow + 1; $row <= $startRow + 6; $row++) {
-            $worksheet->getRowDimension($row)->setRowHeight(60); // Taller rows for event text
+        // Set row heights for calendar grid rows (dynamic based on content)
+        $lastRow = $worksheet->getHighestRow();
+        for ($row = 11; $row <= $lastRow; $row++) {
+            $worksheet->getRowDimension($row)->setRowHeight(30); // Default height for calendar rows
         }
     }
     
