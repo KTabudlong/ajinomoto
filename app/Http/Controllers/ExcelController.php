@@ -248,6 +248,67 @@ class ExcelController extends Controller
     }
     
     /**
+     * Generate Toluca Calendar Export (2025-2030)
+     */
+    public function generateTolucaCalendar()
+    {
+        try {
+            // Read the Toluca file
+            $tolucaFile = 'xlsx/Toluca Environmental Compliance Calendar.xlsx';
+            
+            if (!file_exists($tolucaFile)) {
+                return response()->json([
+                    'success' => false,
+                    'error' => 'Toluca file not found: ' . $tolucaFile
+                ], 404);
+            }
+            
+            // Create a mock file object
+            $file = new \Illuminate\Http\UploadedFile(
+                $tolucaFile,
+                basename($tolucaFile),
+                mime_content_type($tolucaFile),
+                null,
+                true
+            );
+            
+            $excelService = new ExcelProcessingService();
+            
+            // Process the Toluca file
+            $tolucaData = $excelService->processTolucaFile($file);
+            
+            Log::info('Toluca data processed', [
+                'total_tasks' => count($tolucaData)
+            ]);
+            
+            // Generate the calendar export
+            $filePath = $excelService->generateTolucaCalendarExport($tolucaData, 2025, 2030, $file);
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Toluca Calendar generated successfully',
+                'file_path' => $filePath,
+                'file_exists' => file_exists($filePath),
+                'file_size' => file_exists($filePath) ? filesize($filePath) : 0,
+                'total_tasks' => count($tolucaData),
+                'years_generated' => '2025-2030'
+            ]);
+            
+        } catch (\Exception $e) {
+            Log::error('Error generating Toluca Calendar', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ], 500);
+        }
+    }
+
+    /**
      * Test calendar export functionality (for debugging)
      */
     public function testCalendarExport()

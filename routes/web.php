@@ -152,6 +152,9 @@ Route::prefix('admin')->middleware(['auth', 'verified'])->name('admin.')->group(
         
         // Test route for debugging calendar export
         Route::get('/excel/test-calendar', 'testCalendarExport')->name('excel.test-calendar');
+        
+        // Generate Toluca Calendar Export (2025-2030)
+        Route::get('/excel/generate-toluca-calendar', 'generateTolucaCalendar')->name('excel.generate-toluca-calendar');
     });
 });
 
