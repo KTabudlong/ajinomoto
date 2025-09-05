@@ -5,28 +5,28 @@ namespace App\Console\Commands;
 use Illuminate\Console\Command;
 use App\Services\SanDiegoExcelProcessingService;
 
-class GenerateSandiegoCalendar extends Command
+class GenerateSandiego2025Calendar extends Command
 {
     /**
      * The name and signature of the console command.
      *
      * @var string
      */
-    protected $signature = 'generate:sandiego-calendar {--file=}';
+    protected $signature = 'generate:sandiego-2025-calendar {--file=}';
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'Generate San Diego Environmental Compliance Calendar';
+    protected $description = 'Generate San Diego 2025 Calendar';
 
     /**
      * Execute the console command.
      */
     public function handle()
     {
-        $this->info('Generating San Diego Calendar Export...');
+        $this->info('Generating San Diego 2025 Calendar...');
         
         $file = $this->option('file');
         if (!$file) {
@@ -37,13 +37,13 @@ class GenerateSandiegoCalendar extends Command
         
         try {
             $excelService = new SanDiegoExcelProcessingService();
-            $result = $excelService->generateSanDiegoCalendarExport($file);
+            $result = $excelService->generateSanDiego2025Calendar($file);
             
-            $this->info("San Diego Calendar generated successfully!");
+            $this->info("San Diego 2025 Calendar generated successfully!");
             $this->info("File saved to: {$result}");
             
         } catch (\Exception $e) {
-            $this->error("Error generating San Diego Calendar: " . $e->getMessage());
+            $this->error("Error generating San Diego 2025 Calendar: " . $e->getMessage());
             return 1;
         }
         

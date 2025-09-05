@@ -490,8 +490,8 @@ class ExcelProcessingService
                 $monthStr = str_pad($m, 2, '0', STR_PAD_LEFT);
                 $lastDay = date('t', mktime(0, 0, 0, $m, 1, $year));
                 $newDate = new \DateTime("{$year}-{$monthStr}-{$lastDay}");
-                $dates[] = $newDate;
-            }
+                    $dates[] = $newDate;
+                }
         } elseif (str_contains($frequency, 'weekly')) {
             // Weekly - add to every Monday of the year
             $startDate = new \DateTime("{$year}-01-01");
@@ -508,7 +508,7 @@ class ExcelProcessingService
                 $dates[] = clone $currentDate;
                 $currentDate->add(new \DateInterval('P7D')); // Add 7 days to get next Monday
             }
-                } elseif (str_contains($frequency, 'quarterly')) {
+        } elseif (str_contains($frequency, 'quarterly')) {
             // Quarterly frequency - check due date for timing
             $dueDateStr = strtolower($dueDateStr ?? '');
             
@@ -539,7 +539,7 @@ class ExcelProcessingService
                 $quarterEndMonths = [3, 6, 9, 12];
                 
                 foreach ($quarterEndMonths as $month) {
-                    $monthStr = str_pad($month, 2, '0', STR_PAD_LEFT);
+                $monthStr = str_pad($month, 2, '0', STR_PAD_LEFT);
                     $lastDay = date('t', mktime(0, 0, 0, $month, 1, $year));
                     $newDate = new \DateTime("{$year}-{$monthStr}-{$lastDay}");
                     $dates[] = $newDate;
@@ -1344,7 +1344,7 @@ class ExcelProcessingService
         
         // Skip if essential data is missing
         if (empty($topic) || empty($activity)) {
-            return null;
+        return null;
         }
         
         // Handle special cases
@@ -2026,7 +2026,7 @@ class ExcelProcessingService
         return $events;
     }
 
-
+    
     /**
      * Generate calendar-based export in Master file format
      */
